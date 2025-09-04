@@ -1,0 +1,4 @@
+GET /ads.js HTTP/1.1
+Host: sub.nominalclck.name
+User-Agent: zids-test
+

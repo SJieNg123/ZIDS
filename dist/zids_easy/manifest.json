@@ -1,0 +1,26 @@
+{
+  "aid_bits": 16,
+  "alphabet_size": 256,
+  "cell_bytes": 208,
+  "cmax_used": 1,
+  "crypto_params": {
+    "k": 128,
+    "kappa": 128,
+    "kprime": 128
+  },
+  "gk_bytes": 32,
+  "gk_table_bin": "gk_table.bin",
+  "gk_table_sha256": "5f9fb8f343eeb1660c2bbd1cafb2256deb44305cd20299e1486a26ae1385f199",
+  "num_states": 307,
+  "outmax_used": 13,
+  "permutation_len": 307,
+  "prg_label": "PRG|GDFA|cell",
+  "row_alph_bin": "row_alph.bin",
+  "row_bytes": 2704,
+  "rows_sha256": "0777c9a810efc286b5d7e042aec418183a3e05cc38094517e331571b8819d3f5",
+  "seed_mode": "master->GK->seed",
+  "sources": [
+    "rules\\easylist_small.txt"
+  ],
+  "start_row": 22
+}

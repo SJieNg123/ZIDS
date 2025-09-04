@@ -22,6 +22,8 @@ from src.server.offline.export.gdfa_packager import write_container, write_jsonb
 from src.common.odfa.params import SecurityParams, SparsityParams
 from src.common.odfa.seed_rules import PRG_LABEL_CELL  # for manifest only
 
+from src.common.crypto.prf import prf_msg
+from src.common.odfa.seed_rules import i2osp
 
 # ---------- helpers: outputs ----------
 
@@ -232,8 +234,21 @@ def main(argv: List[str]) -> None:
         # 輸出 GK 表供線上端載入/驗證
         gk_info = _write_gk_table(args.outdir, gk_table)
 
+        # 取代原本的 pad_seed_from_gk 定義
         def pad_seed_from_gk(row: int, col: int, k_bytes: int) -> bytes:
-            return derive_seed_from_gk(gk_table[row][col], row, col, k_bytes)
+            """
+            Use GK[row][col] when col 落在實際群數 m 內；
+            對於補位欄位 (col >= m)，用 master_gk 決定性導出一個「虛擬 GK」，
+            以確保每列 outmax 個 cell 都有 seed（離線能順利產 rows）。
+            """
+            m = len(gk_table[row])
+            if col < m:
+                return derive_seed_from_gk(gk_table[row][col], row, col, k_bytes)
+
+            # unused slot: derive a dummy GK deterministically from master_gk
+            dummy_label = b"ZIDS|GK|unused|" + i2osp(row, 4) + b"|" + i2osp(col, 2)
+            dummy_gk = prf_msg(master_gk, dummy_label, k_bytes)
+            return derive_seed_from_gk(dummy_gk, row, col, k_bytes)
 
         pad_seed_fn = pad_seed_from_gk
         seed_mode = "master->GK->seed"

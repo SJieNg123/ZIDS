@@ -1,0 +1,10 @@
+aid:6000 Host:\s*([^.]+\.)*sub\.rtrhit\.com
+aid:6001 Host:\s*([^.]+\.)*sub\.declarepainfullyswat\.com
+aid:6002 Host:\s*([^.]+\.)*sub\.fkyptqbtkkdxr\.store
+aid:6003 Host:\s*([^.]+\.)*sub\.0cdn\.xyz
+aid:6004 Host:\s*([^.]+\.)*sub\.nominalclck\.name
+aid:6005 Host:\s*([^.]+\.)*sub\.fkkicdtg\.com
+aid:6006 Host:\s*([^.]+\.)*sub\.kjbqbgzabyyag\.top
+aid:6007 thecatholictravelguide\.com\#\#a\[href/="https://www\.squaremouth\.com/"\]
+aid:6008 \#\#\.adSense\-header
+aid:6009 Host:\s*([^.]+\.)*sub\.meconinmarge\.shop

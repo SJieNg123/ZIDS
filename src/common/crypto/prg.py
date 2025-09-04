@@ -21,6 +21,8 @@ def _prg_ctr(seed: bytes, out_len: int, *, label: bytes) -> bytes:
     """
     if not isinstance(seed, (bytes, bytearray)):
         raise TypeError("seed must be bytes")
+    if len(seed) == 0:
+        raise ValueError("seed must be non-empty")
     if not isinstance(label, (bytes, bytearray)):
         raise TypeError("label must be bytes")
     if out_len < 0:
@@ -30,25 +32,16 @@ def _prg_ctr(seed: bytes, out_len: int, *, label: bytes) -> bytes:
     i = 1
     while len(out) < out_len:
         data = b"PRG|" + bytes(label) + b"|ctr=" + i2osp(i, 4) + b"|len=" + i2osp(out_len, 4)
-        out.extend(_hmac(seed, data))
+        out.extend(_hmac(bytes(seed), data))
         i += 1
     return bytes(out[:out_len])
 
 def G_bytes(seed: bytes, out_len: int, *, label: bytes = b"ZIDS|PRG") -> bytes:
-    """
-    Expand to an exact number of BYTES. Use when all consumers speak in bytes.
-    Typical ZIDS uses:
-      - out_len = outmax * k_prime_bits // 8  (rounded up)
-      - or out_len = k_bits // 8 for PAD cells
-    """
+    """Expand to an exact number of BYTES."""
     return _prg_ctr(seed, out_len, label=label)
 
 def G_bits(seed: bytes, out_bits: int, *, label: bytes = b"ZIDS|PRG") -> bytes:
-    """
-    Expand to an exact number of BITS (MSB-first truncation on the last byte).
-    Returns a byte string whose length is ceil(out_bits/8); the superfluous
-    low-order bits in the last byte are zeroed to respect the bit-length.
-    """
+    """Expand to an exact number of BITS (MSB-first truncation on the last byte)."""
     if out_bits < 0:
         raise ValueError("out_bits must be non-negative")
     out_len = (out_bits + 7) // 8
@@ -58,6 +51,16 @@ def G_bits(seed: bytes, out_bits: int, *, label: bytes = b"ZIDS|PRG") -> bytes:
     r = out_bits & 7
     if r == 0:
         return buf
-    # Keep the top r bits, zero the low (8 - r) bits of the last byte.
     mask = (0xFF << (8 - r)) & 0xFF
     return buf[:-1] + bytes([buf[-1] & mask])
+
+# ---- Thin wrapper to match engine.py's expected signature ----
+def prg(seed: bytes, label: bytes, out_len: int) -> bytes:
+    """
+    Compatibility wrapper used by engine.py:
+        prg(seed, label, out_len)  -> bytes
+    Internally calls G_bytes(seed, out_len, label=label).
+    """
+    return G_bytes(seed, out_len, label=label)
+
+__all__ = ["prg", "G_bytes", "G_bits"]

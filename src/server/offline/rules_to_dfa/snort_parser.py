@@ -7,7 +7,6 @@ import re
 from src.server.offline.rules_to_dfa.chain_rules import RuleSpec
 from src.server.offline.rules_to_dfa.regex_to_dfa import RegexFlags
 
-
 # =========================
 # 公用：位元組與正則轉換
 # =========================
@@ -21,7 +20,7 @@ def _escape_regex_char(ch: str) -> str:
     return ("\\" + ch) if ch in _REGEX_META else ch
 
 def _bytes_to_regex_literal(bs: bytes, *, prefer_ascii: bool = True) -> str:
-    """
+    r"""
     把 bytes 轉成 regex 字面值：
       - 可列印 ASCII 且非 regex meta -> 原字元（meta 會跳脫）
       - 其他 -> \xHH
@@ -50,7 +49,7 @@ def _bytes_to_regex_literal(bs: bytes, *, prefer_ascii: bool = True) -> str:
 _HEX_PAIR = re.compile(r'^[0-9A-Fa-f]{2}$')
 
 def _parse_content_payload(s: str) -> bytes:
-    """
+    r"""
     解析 Snort content 字串內的 payload：
       - 普通字元
       - 跳脫：\\, \", \n, \r, \t, \xHH

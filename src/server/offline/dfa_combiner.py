@@ -5,15 +5,12 @@ from typing import Iterable, Optional, Dict, List, Tuple
 from src.common.odfa.matrix import ODFA
 from src.server.offline.rules_to_dfa.chain_rules import (
     RuleSpec,
-    # 直接重用 chain_rules 的實作，以維持單一來源
     compile_regex_to_dfa,
     RegexFlags,
-    DFA as SingleDFA,
-    _union_dfas,
-    minimize_tagged_dfa,
-    tagged_dfa_to_odfa,
-    # 型別註記（非必需）
-    TaggedDFA,
+    _union_dfas,            # 聯集多條 DFA（帶 attack_id tag）
+    minimize_tagged_dfa,    # 可選最小化（保留 tags）
+    tagged_dfa_to_odfa,     # 轉成 ODFA（含 aggregate 策略）
+    TaggedDFA,              # 具 tag 的 DFA 結構
 )
 
 def rules_to_odfa_and_dfa_trans(
@@ -30,14 +27,12 @@ def rules_to_odfa_and_dfa_trans(
     rule_list = list(rules)
     if not rule_list:
         # 空集合：建立一個空機器
-        empty_trans: List[Dict[int, int]] = [{}]
-        # 透過最小 TaggedDFA 流程來產生等價 ODFA
         td = _union_dfas([])  # 會回傳單一非接受起始態
         odfa = tagged_dfa_to_odfa(td, aggregate=aggregate, id_to_bit=id_to_bit)
-        return odfa, empty_trans
+        return odfa, td.trans
 
     # 個別編成 DFA，並配上各自的 attack_id
-    compiled: List[Tuple[SingleDFA, int]] = []
+    compiled: List[Tuple[object, int]] = []
     for r in rule_list:
         r.sanity_check()
         d = compile_regex_to_dfa(r.pattern, flags=r.flags, minimize=True)
