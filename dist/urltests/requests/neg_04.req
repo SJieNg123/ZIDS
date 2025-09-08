@@ -1,4 +1,4 @@
-GET / HTTP/1.1
-Host: 0cdn.xyzx
+GET /path/ HTTP/1.1
+Host: example.com
 User-Agent: zids-test
 

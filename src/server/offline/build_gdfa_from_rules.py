@@ -1,37 +1,40 @@
 # src/server/offline/build_gdfa_from_rules.py
 from __future__ import annotations
+
 import argparse
+import hashlib
 import json
 import os
 import sys
-import hashlib
-from typing import List, Optional, Dict, Iterable
+import struct
+from typing import Dict, List, Optional, Tuple
 
-from src.server.io.rule_loader import load_rules, LoaderConfig
+from src.server.io.rule_loader import LoaderConfig, load_rules
 from src.server.offline.dfa_combiner import rules_to_odfa_and_dfa_trans
 from src.server.offline.dfa_optimizer.sparsity_analysis import analyze_odfa_sparsity
-from src.server.offline.dfa_optimizer.char_grouping import build_row_alphabets_from_dfa_trans, RowAlphabet
-from src.server.offline.key_generator import (
-    make_offline_pad_seed_fn,
-    derive_seed_from_gk,
-    derive_deterministic_gk_table,   # 新增的 GK 生成器
+from src.server.offline.dfa_optimizer.char_grouping import (
+    RowAlphabet,
+    build_row_alphabets_from_dfa_trans,
 )
-from src.server.offline.gdfa_builder import build_gdfa_stream, GDFAStream, GDFAPublicHeader
+from src.server.offline.gdfa_builder import GDFAStream, GDFAPublicHeader, build_gdfa_stream
 from src.server.offline.export.gdfa_packager import write_container, write_jsonbin
+from src.server.offline.key_generator import (
+    derive_deterministic_gk_table,
+    make_offline_pad_seed_fn,
+)
 
 from src.common.odfa.params import SecurityParams, SparsityParams
-from src.common.odfa.seed_rules import PRG_LABEL_CELL  # for manifest only
+from src.common.odfa.seed_rules import PRG_LABEL_CELL, seed_info  # seed_info for master->seed
+from src.common.crypto.prf import prf_msg  # PRF(key, msg, out_len)
 
-from src.common.crypto.prf import prf_msg
-from src.common.odfa.seed_rules import i2osp
 
-# ---------- helpers: outputs ----------
+# ----------------------- helpers: outputs -----------------------
 
 def _write_row_alph(outdir: str, row_alph: List[RowAlphabet]) -> str:
     """
-    寫出逐列 256B 的 byte->column 映射：
-      - row_alph.bin:  num_states × 256 bytes，row-major
-      - row_alph.json: metadata（列數、每列欄數）
+    Write per-row 256B byte->column mapping:
+      - row_alph.bin : num_rows × 256 bytes (row-major)
+      - row_alph.json: metadata (rows, cols_per_row)
     """
     os.makedirs(outdir, exist_ok=True)
     bin_path = os.path.join(outdir, "row_alph.bin")
@@ -46,7 +49,7 @@ def _write_row_alph(outdir: str, row_alph: List[RowAlphabet]) -> str:
     meta = {
         "num_rows": len(row_alph),
         "cols_per_row": [ra.num_cols for ra in row_alph],
-        "format": "row-major, each row has 256 bytes; value = column index (0..num_cols-1)",
+        "format": "row-major; 256 bytes per row; value=column index (0..num_cols-1)",
     }
     with open(meta_path, "wb") as mf:
         mf.write(json.dumps(meta, indent=2, sort_keys=True).encode("utf-8"))
@@ -56,9 +59,9 @@ def _write_row_alph(outdir: str, row_alph: List[RowAlphabet]) -> str:
 
 def _write_gk_table(outdir: str, gk_table: List[List[bytes]]) -> Dict[str, str]:
     """
-    寫出 GK 表：
-      - gk_table.bin:  row-major，對每列串接 m 個 GK（無 padding）；變長列以 meta 還原
-      - gk_meta.json:  {num_rows, cols_per_row, k_bytes, sha256(bin)}
+    Write GK table for debugging/inspection:
+      - gk_table.bin : row-major; concatenate m keys per row (variable m)
+      - gk_meta.json : {num_rows, cols_per_row, k_bytes, rows_sha256}
     """
     os.makedirs(outdir, exist_ok=True)
     bin_path = os.path.join(outdir, "gk_table.bin")
@@ -69,6 +72,7 @@ def _write_gk_table(outdir: str, gk_table: List[List[bytes]]) -> Dict[str, str]:
     cols_per_row = [len(row) for row in gk_table]
     if any(m <= 0 for m in cols_per_row):
         raise ValueError("GK table row with zero columns")
+
     klen0 = len(gk_table[0][0])
     for r, row in enumerate(gk_table):
         for c, gk in enumerate(row):
@@ -96,16 +100,34 @@ def _write_gk_table(outdir: str, gk_table: List[List[bytes]]) -> Dict[str, str]:
     return {"path": bin_path, "sha256": sha, "k_bytes": str(klen0)}
 
 
-def _write_manifest(outdir: str,
-                    rules_sources: List[str],
-                    pub: GDFAPublicHeader,
-                    outmax_used: int,
-                    cmax_used: int,
-                    row_alph_path: str,
-                    params: Dict[str, int],
-                    rows_blob_hash: Optional[str] = None,
-                    gk_info: Optional[Dict[str, str]] = None,
-                    seed_mode: str = "random") -> None:
+def _write_row_aids(outdir: str, state_aids: List[int], num_states: int) -> str:
+    """
+    Write line-level AID table:
+      - row_aids.bin : num_states × uint32_le
+    """
+    if len(state_aids) != num_states:
+        raise ValueError(f"row_aids length mismatch: {len(state_aids)} != {num_states}")
+    os.makedirs(outdir, exist_ok=True)
+    path = os.path.join(outdir, "row_aids.bin")
+    with open(path, "wb") as f:
+        for aid in state_aids:
+            f.write(struct.pack("<I", int(aid) & 0xffffffff))
+    return path
+
+
+def _write_manifest(
+    outdir: str,
+    rules_sources: List[str],
+    pub: GDFAPublicHeader,
+    outmax_used: int,
+    cmax_used: int,
+    row_alph_path: str,
+    params: Dict[str, int],
+    rows_blob_hash: Optional[str] = None,
+    gk_info: Optional[Dict[str, str]] = None,
+    seed_mode: str = "random",
+    aux_tables: Optional[Dict[str, str]] = None,
+) -> None:
     mani = {
         "sources": rules_sources,
         "alphabet_size": pub.alphabet_size,
@@ -119,7 +141,9 @@ def _write_manifest(outdir: str,
         "permutation_len": len(pub.permutation),
         "row_alph_bin": os.path.basename(row_alph_path),
         "crypto_params": params,
-        "prg_label": PRG_LABEL_CELL.decode() if isinstance(PRG_LABEL_CELL, (bytes, bytearray)) else str(PRG_LABEL_CELL),
+        "prg_label": PRG_LABEL_CELL.decode()
+        if isinstance(PRG_LABEL_CELL, (bytes, bytearray))
+        else str(PRG_LABEL_CELL),
         "seed_mode": seed_mode,  # "master->seed" | "master->GK->seed" | "random"
     }
     if rows_blob_hash:
@@ -128,6 +152,9 @@ def _write_manifest(outdir: str,
         mani["gk_table_bin"] = os.path.basename(gk_info["path"])
         mani["gk_table_sha256"] = gk_info["sha256"]
         mani["gk_bytes"] = int(gk_info["k_bytes"])
+    if aux_tables:
+        mani["aux_tables"] = {k: os.path.basename(v) for k, v in aux_tables.items()}
+
     os.makedirs(outdir, exist_ok=True)
     with open(os.path.join(outdir, "manifest.json"), "wb") as f:
         f.write(json.dumps(mani, indent=2, sort_keys=True).encode("utf-8"))
@@ -143,7 +170,93 @@ def _maybe_dump_secrets(outdir: str, stream: GDFAStream, mode: str) -> None:
         f.write(json.dumps(obj, indent=2, sort_keys=True).encode("utf-8"))
 
 
-# ---------- args & main ----------
+# ----------------------- acceptance/AID extraction -----------------------
+
+def _derive_state_aids(odfa) -> Tuple[List[int], int]:
+    """
+    按以下优先级从 ODFA 提取每个状态的 AID（>0=命中，0=非接受）：
+      1) 方法：get_state_aid(i) / get_row_aid(i)
+      2) 数组：state_aids[i] / accept_ids[i] / aid_table[i]
+      3) 字典：accepting_map[i] / accepting_ids[i] / row_to_aid[i]
+      4) 布尔：is_accepting(i) / i in accepting_states/accepting_rows -> AID=1
+    返回：(state_aids, num_states)
+    """
+    num_states = getattr(odfa, "num_states", None) or getattr(odfa, "states", None)
+    if isinstance(num_states, list):
+        num_states = len(num_states)
+    if not isinstance(num_states, int) or num_states <= 0:
+        raise SystemExit("ODFA has no num_states")
+
+    aids = [0] * num_states
+
+    # 方法优先
+    for fname in ("get_state_aid", "get_row_aid"):
+        fn = getattr(odfa, fname, None)
+        if callable(fn):
+            for i in range(num_states):
+                try:
+                    v = fn(i)
+                    if isinstance(v, int) and v > 0:
+                        aids[i] = v
+                except Exception:
+                    pass
+            if any(aids):
+                return aids, num_states
+
+    # 数组
+    for name in ("state_aids", "accept_ids", "aid_table"):
+        arr = getattr(odfa, name, None)
+        if arr is not None:
+            try:
+                for i in range(num_states):
+                    v = arr[i]
+                    if isinstance(v, int) and v > 0:
+                        aids[i] = v
+            except Exception:
+                pass
+            if any(aids):
+                return aids, num_states
+
+    # 字典
+    for name in ("accepting_map", "accepting_ids", "row_to_aid"):
+        mp = getattr(odfa, name, None)
+        if isinstance(mp, dict):
+            for i in range(num_states):
+                v = mp.get(i, 0)
+                if isinstance(v, int) and v > 0:
+                    aids[i] = v
+            if any(aids):
+                return aids, num_states
+
+    # 布尔接受
+    fn2 = getattr(odfa, "is_accepting", None)
+    if callable(fn2):
+        for i in range(num_states):
+            try:
+                if fn2(i):
+                    aids[i] = 1
+            except Exception:
+                pass
+        if any(aids):
+            return aids, num_states
+
+    for name in ("accepting_states", "accepting_rows"):
+        s = getattr(odfa, name, None)
+        if s is not None:
+            try:
+                for i in range(num_states):
+                    if i in s:
+                        aids[i] = 1
+            except Exception:
+                pass
+            if any(aids):
+                return aids, num_states
+
+    # 没有任何接受信息
+    return aids, num_states
+
+
+# ----------------------- args & main -----------------------
 
 def parse_args(argv: List[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Build GDFA (offline) directly from rule files")
@@ -154,9 +267,11 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     p.add_argument("--container-path", help="Explicit output path for .gdfa")
 
     # rule loader config
-    p.add_argument("--combine-contents", action="store_true", help="Combine multiple content in the same rule into a single regex with bounded gaps")
+    p.add_argument("--combine-contents", action="store_true",
+                   help="Combine multiple content in the same rule into a single regex with bounded gaps")
     p.add_argument("--content-gap-max", type=int, default=512)
-    p.add_argument("--default-dotall", action="store_true", help="Default to dotall on regex ('.' matches LF)")
+    p.add_argument("--default-dotall", action="store_true",
+                   help="Default to dotall on regex ('.' matches LF)")
 
     # crypto/packing params
     p.add_argument("--k", type=int, default=128)
@@ -171,7 +286,8 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
 
     # seeds (mutually exclusive):
     p.add_argument("--master-key-hex", help="Deterministic SEEDs: seed = PRF(master, seed_info(row,col))")
-    p.add_argument("--gk-from-master-hex", help="Deterministic GK then SEEDs: GK=PRF(master,'ZIDS|GK|row|col'); seed=PRF(GK,seed_info(row,col))")
+    p.add_argument("--gk-from-master-hex",
+                   help="Deterministic GK then SEEDs: GK=PRF(master,'ZIDS|GK|row|col'); seed=PRF(GK,seed_info(row,col))")
     p.add_argument("--gk-bytes", type=int, default=32, help="GK byte length when using --gk-from-master-hex")
 
     # secrets dump
@@ -215,64 +331,68 @@ def main(argv: List[str]) -> None:
     sec = SecurityParams(k_bits=args.k, kprime_bits=args.kprime, kappa=args.kappa, alphabet_size=args.alphabet)
     sp = SparsityParams(outmax=outmax, cmax=cmax)
 
-    # 6) Decide pad_seed_fn mode
+    # 6) Decide pad_seed_fn mode (this controls offline→online consistency)
     pad_seed_fn = None
     gk_info: Optional[Dict[str, str]] = None
     seed_mode = "random"
 
     if args.gk_from_master_hex:
-        # GK 決定性 → pad seeds 由 GK 導出（與線上端完全一致）
+        # GK deterministic → pad seeds derived from GK (exactly matches online)
         try:
             master_gk = bytes.fromhex(args.gk_from_master_hex)
         except ValueError as e:
             raise SystemExit(f"invalid --gk-from-master-hex: {e}")
         if args.gk_bytes <= 0:
             raise SystemExit("--gk-bytes must be positive")
-        # 依 cols_per_row 生成 GK 表
+
         cols_per_row = [ra.num_cols for ra in row_alph]
         gk_table = derive_deterministic_gk_table(master_gk, cols_per_row=cols_per_row, k_bytes=args.gk_bytes)
-        # 輸出 GK 表供線上端載入/驗證
         gk_info = _write_gk_table(args.outdir, gk_table)
 
-        # 取代原本的 pad_seed_from_gk 定義
-        def pad_seed_from_gk(row: int, col: int, k_bytes: int) -> bytes:
-            """
-            Use GK[row][col] when col 落在實際群數 m 內；
-            對於補位欄位 (col >= m)，用 master_gk 決定性導出一個「虛擬 GK」，
-            以確保每列 outmax 個 cell 都有 seed（離線能順利產 rows）。
-            """
-            m = len(gk_table[row])
-            if col < m:
-                return derive_seed_from_gk(gk_table[row][col], row, col, k_bytes)
-
-            # unused slot: derive a dummy GK deterministically from master_gk
-            dummy_label = b"ZIDS|GK|unused|" + i2osp(row, 4) + b"|" + i2osp(col, 2)
-            dummy_gk = prf_msg(master_gk, dummy_label, k_bytes)
-            return derive_seed_from_gk(dummy_gk, row, col, k_bytes)
-
-        pad_seed_fn = pad_seed_from_gk
+        pad_seed_fn = make_offline_pad_seed_fn(
+            gk_table=gk_table,
+            master_gk=master_gk,
+            gk_bytes=args.gk_bytes,
+        )
         seed_mode = "master->GK->seed"
 
     elif args.master_key_hex:
-        # 直接用 master → SEED（研究/測試友善；線上須用相同規則才能解）
+        # Direct master->seed (research/testing friendly; online must use the same to decrypt)
         try:
             master = bytes.fromhex(args.master_key_hex)
         except ValueError as e:
             raise SystemExit(f"invalid --master-key-hex: {e}")
-        pad_seed_fn = make_offline_pad_seed_fn(master)
+
+        def pad_seed_fn(row: int, col: int, k_bytes: int) -> bytes:  # type: ignore[no-redef]
+            return prf_msg(master, seed_info(row, col), k_bytes)
+
         seed_mode = "master->seed"
 
     else:
-        # 無指定時，使用隨機（不可重現；線上需同步記錄 seeds 或改用 GK 模式）
+        # Random seeds (non-reproducible; online would need the same seeds recorded)
         pad_seed_fn = None
         seed_mode = "random"
 
     # 7) Build GDFA stream
-    stream: GDFAStream = build_gdfa_stream(odfa, sec, sp, aid_bits=args.aid_bits, pad_seed_fn=pad_seed_fn)
+    stream: GDFAStream = build_gdfa_stream(
+        odfa, sec, sp,
+        aid_bits=args.aid_bits,
+        pad_seed_fn=pad_seed_fn,
+    )
     pub = stream.public
     rows_list = list(stream.rows)  # materialize for hashing/packaging
     rows_blob = b"".join(rows_list)
     rows_hash = hashlib.sha256(rows_blob).hexdigest()
+
+    # 7.1) Derive and write row_aids.bin（优先用 builder 聚合的行级 AID）
+    num_states = pub.num_states
+    state_aids = getattr(stream, "row_aids", None)
+    if not state_aids or len(state_aids) != num_states or all(v == 0 for v in state_aids):
+        # 兜底：回退到 ODFA 抽取（可能拿不到，但不影响容错）
+        state_aids, _ = _derive_state_aids(odfa)
+
+    row_aids_path = _write_row_aids(args.outdir, state_aids, num_states)
+    aux_tables = {"row_aids": row_aids_path}
 
     # 8) Package
     if args.format == "container":
@@ -296,6 +416,7 @@ def main(argv: List[str]) -> None:
         rows_blob_hash=rows_hash,
         gk_info=gk_info,
         seed_mode=seed_mode,
+        aux_tables=aux_tables,
     )
 
     # 11) Summary
@@ -306,6 +427,7 @@ def main(argv: List[str]) -> None:
     print(f"cell/row    : {pub.cell_bytes} B / {pub.row_bytes} B")
     print(f"start_row   : {pub.start_row}")
     print(f"row_alph    : {row_alph_path}")
+    print(f"row_aids    : {row_aids_path}")
     if gk_info:
         print(f"GK table    : {gk_info['path']}  (sha256={gk_info['sha256'][:16]}...)  k_bytes={gk_info['k_bytes']}")
     print(f"rows sha256 : {rows_hash}")

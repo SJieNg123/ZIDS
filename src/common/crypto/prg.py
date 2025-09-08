@@ -56,11 +56,6 @@ def G_bits(seed: bytes, out_bits: int, *, label: bytes = b"ZIDS|PRG") -> bytes:
 
 # ---- Thin wrapper to match engine.py's expected signature ----
 def prg(seed: bytes, label: bytes, out_len: int) -> bytes:
-    """
-    Compatibility wrapper used by engine.py:
-        prg(seed, label, out_len)  -> bytes
-    Internally calls G_bytes(seed, out_len, label=label).
-    """
     return G_bytes(seed, out_len, label=label)
 
 __all__ = ["prg", "G_bytes", "G_bits"]

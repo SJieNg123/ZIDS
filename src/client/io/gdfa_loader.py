@@ -5,7 +5,7 @@ import os
 import struct
 import hashlib
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 _MAGIC = b"ZIDSv1\0"
 
@@ -24,12 +24,18 @@ class GDFAHeader:
 class GDFAImage:
     """
     Read-only view over GDFA rows (ciphertext cells).
-    Supports both container (.gdfa) and jsonbin (header.json + rows.bin).
+    Supports both:
+      - container (.gdfa): header + rows + sha256
+      - jsonbin (dir):    header.json(+.gz) + rows.bin
+    Optionally loads auxiliary tables from the artifact directory:
+      - row_aids.bin : num_states × uint32_le  (line-level AID table)
     """
-    def __init__(self, header: GDFAHeader, rows_blob: bytes):
+    def __init__(self, header: GDFAHeader, rows_blob: bytes, art_dir: Optional[str] = None):
         self.h = header
         self._rows = rows_blob
-        # quick sanity
+        self._art_dir = art_dir  # base dir for aux tables (may be None for raw buffers)
+
+        # ---- quick sanity ----
         if len(rows_blob) != header.num_states * header.row_bytes:
             raise ValueError("rows blob size mismatch against header")
         if header.row_bytes % header.cell_bytes != 0:
@@ -39,12 +45,37 @@ class GDFAImage:
         if header.cmax != 1:
             raise ValueError("this client assumes cmax=1 (partition per row)")
 
+        # ---- permutation / inverse permutation (optional) ----
+        self._perm: List[int] = list(header.permutation or [])
+        if self._perm and len(self._perm) != header.num_states:
+            raise ValueError("permutation length mismatch")
+        if self._perm:
+            inv = [0] * len(self._perm)
+            for i, p in enumerate(self._perm):
+                if not (0 <= p < len(self._perm)):
+                    raise ValueError("permutation value out of range")
+                inv[p] = i
+            self._inv_perm: Optional[List[int]] = inv
+        else:
+            self._inv_perm = None  # identity
+
+        # ---- optional aux tables ----
+        self.row_aids: Optional[List[int]] = None
+        if self._art_dir:
+            self._maybe_load_row_aids(self._art_dir)
+
+    # ---------- properties ----------
     @property
     def start_row(self) -> int:
         return self.h.start_row
 
     @property
     def num_states(self) -> int:
+        return self.h.num_states
+
+    # 有些调用会尝试 num_rows；给个别名以提高兼容性
+    @property
+    def num_rows(self) -> int:
         return self.h.num_states
 
     @property
@@ -63,6 +94,7 @@ class GDFAImage:
     def aid_bits(self) -> int:
         return self.h.aid_bits
 
+    # ---------- core access ----------
     def row_slice(self, row: int) -> memoryview:
         if not (0 <= row < self.h.num_states):
             raise IndexError("row out of range")
@@ -70,10 +102,54 @@ class GDFAImage:
         return memoryview(self._rows)[s:s + self.h.row_bytes]
 
     def get_cell_cipher(self, row: int, col: int) -> bytes:
-        if not (0 <= col < (self.h.row_bytes // self.h.cell_bytes)):
+        if not (0 <= row < self.h.num_states):
+            raise IndexError("row out of range")
+        cols_per_row = self.h.row_bytes // self.h.cell_bytes
+        if not (0 <= col < cols_per_row):
             raise IndexError("col out of range in row stride")
         base = row * self.h.row_bytes + col * self.h.cell_bytes
         return self._rows[base: base + self.h.cell_bytes]
+
+    # 新引擎优先调用 get_cell_bytes；这里与 get_cell_cipher 等价
+    def get_cell_bytes(self, row: int, col: int) -> bytes:
+        return self.get_cell_cipher(row, col)
+
+    # ---------- permutation helpers ----------
+    def inv_permute(self, row: int) -> int:
+        """Map physical row index back to logical via inverse permutation (if any)."""
+        if self._inv_perm is None:
+            return row
+        if not (0 <= row < len(self._inv_perm)):
+            return row
+        return self._inv_perm[row]
+
+    # ---------- acceptance / AID ----------
+    def _maybe_load_row_aids(self, art_dir: str) -> None:
+        """
+        Optional aux table: row_aids.bin = num_states × uint32_le
+        """
+        path = os.path.join(art_dir, "row_aids.bin")
+        if not os.path.exists(path):
+            # optional
+            return
+        with open(path, "rb") as f:
+            buf = f.read()
+        exp = self.h.num_states * 4
+        if len(buf) != exp:
+            raise ValueError(f"row_aids.bin size mismatch: {len(buf)} != {exp}")
+        self.row_aids = [struct.unpack_from("<I", buf, 4 * i)[0] for i in range(self.h.num_states)]
+
+    def get_row_aid(self, row: int) -> int:
+        """Return >0 if row is accepting with that attack-id; 0 otherwise."""
+        if self.row_aids is None:
+            return 0
+        if 0 <= row < len(self.row_aids):
+            return int(self.row_aids[row])
+        return 0
+
+    def is_accepting(self, row: int) -> bool:
+        return self.get_row_aid(row) > 0
+
 
 # ---------- loaders ----------
 
@@ -111,16 +187,19 @@ def load_from_container(path: str) -> GDFAImage:
     if hashlib.sha256(rows_blob).digest() != digest:
         raise ValueError("container rows sha256 mismatch")
     header = _parse_header_obj(header_obj)
-    return GDFAImage(header, rows_blob)
+
+    # artifact dir = where the .gdfa sits (aux tables live here)
+    art_dir = os.path.dirname(os.path.abspath(path))
+    return GDFAImage(header, rows_blob, art_dir=art_dir)
 
 def load_from_jsonbin(dirpath: str) -> GDFAImage:
     # header.json (optionally gz) + rows.bin
     header_path = os.path.join(dirpath, "header.json")
     if not os.path.exists(header_path):
         # try gz
-        header_path += ".gz"
+        gz_path = header_path + ".gz"
         import gzip
-        with gzip.open(header_path, "rb") as f:
+        with gzip.open(gz_path, "rb") as f:
             hbytes = f.read()
     else:
         with open(header_path, "rb") as f:
@@ -134,7 +213,7 @@ def load_from_jsonbin(dirpath: str) -> GDFAImage:
         if hashlib.sha256(rows_blob).hexdigest() != header_obj["rows_sha256"]:
             raise ValueError("rows.bin sha256 mismatch against header")
     header = _parse_header_obj(header_obj)
-    return GDFAImage(header, rows_blob)
+    return GDFAImage(header, rows_blob, art_dir=os.path.abspath(dirpath))
 
 def load_gdfa(path: str) -> GDFAImage:
     """

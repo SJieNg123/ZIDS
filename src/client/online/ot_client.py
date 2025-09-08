@@ -1,84 +1,53 @@
 # src/client/online/ot_client.py
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Callable, List, Protocol
+from typing import Dict, Tuple, List
 
-# ---- 最小 server 端 handler 介面（本地呼叫） ----
-class ServerHandler(Protocol):
-    def ot_row_payload(self, session_id: str, row_id: int) -> tuple[bytes, List[bytes]]:
-        """
-        回傳 (aad, payload_list)，其中 payload_list[c] = GK[row][c]（bytes）。
-        來源：src/server/online/handlers.ZIDSServerApp.ot_row_payload
-        """
-        ...
+from src.common.odfa.seed_rules import seed_from_gk
 
-# ---- 可供 engine.py 使用的 OTChooser 介面（保持一致） ----
-class OTChooser(Protocol):
-    def acquire_gk(self, *, row_id: int, m: int, col: int, aad: bytes) -> bytes:
-        """
-        針對指定 (row_id, col)，執行 1-of-m OT 取得 GK[row][col]（bytes）。
-        - m: 該列群數（供 sanity check）
-        - aad: 引擎計算的 AAD，需與 server 端對應列的 AAD 完全一致
-        """
-        ...
-
-# =========================================================
-# 1) 本地直取版（不做密碼學，只為「先跑起來驗證架構」）
-# =========================================================
-
-@dataclass
 class LocalTrivialOTChooser:
     """
-    極簡本地版 OT 選擇器：
-      - 直接向 server handler 取得 (aad, payload)，回傳 payload[col]
-      - 僅作 AAD 與長度一致性檢查；不提供任何密碼學隱匿/安全性
-    使用時機：
-      - 你正在搭架構、要先讓 pipeline 從 input → output 走通
-      - 之後再換成真正的 OT（見下方 Pluggable 版本）
+    本地评测用的“假 OT”：
+      - 一次取整行载荷 (aad, payload)，缓存
+      - 第一次使用某 (row, logical_col) 时，通过对比“客户端种子 vs 服务器种子”
+        解析出 payload 的物理槽位，建立映射 (row, logical_col) -> slot
+      - 以后直接用该 slot 取 GK
+    这样适配了“服务器可对 payload 做置换/填充”的情况，避免列错位。
     """
-    server: ServerHandler
-    session_id: str
+    def __init__(self, server, session_id: str, seed_k_bytes: int):
+        self.server = server
+        self.session_id = session_id
+        self.seed_k_bytes = seed_k_bytes
+        self._row_payload_cache: Dict[int, Tuple[bytes, List[bytes]]] = {}
+        self._slot_map: Dict[Tuple[int, int], int] = {}  # (row, logical_col) -> physical_slot
 
-    def acquire_gk(self, *, row_id: int, m: int, col: int, aad: bytes) -> bytes:
-        aad_srv, payload = self.server.ot_row_payload(self.session_id, row_id)
-        if aad_srv != aad:
-            raise ValueError("AAD mismatch between client and server for the requested row")
-        if len(payload) != m:
-            raise ValueError(f"server payload length {len(payload)} != m={m}")
-        if not (0 <= col < m):
-            raise ValueError("col out of range for this row")
-        return payload[col]
+    def ensure_row_payload_cached(self, row: int) -> None:
+        if row not in self._row_payload_cache:
+            self._row_payload_cache[row] = self.server.ot_row_payload(self.session_id, row)
 
+    def get_row_payload(self, row: int) -> Tuple[bytes, List[bytes]]:
+        self.ensure_row_payload_cached(row)
+        return self._row_payload_cache[row]
 
-# =========================================================
-# 2) 可插拔版（把你的 1-of-m OT 實作接進來）
-# =========================================================
+    def _resolve_slot_for_col(self, row: int, logical_col: int) -> int:
+        key = (row, logical_col)
+        if key in self._slot_map:
+            return self._slot_map[key]
 
-@dataclass
-class LocalPluggableOTChooser:
-    """
-    可插拔本地 OT 選擇器：
-      - 仍由本地 server handler 提供 (aad, payload)
-      - 透過你注入的 `run_ot_1ofm(payload, aad, choice_col)` 完成真正的 1-of-m OT
-      - `run_ot_1ofm` 必須回傳選到的 GK（bytes）
-    用法：
-      chooser = LocalPluggableOTChooser(server, session_id, run_ot_1ofm=my_impl)
-      # 其中 my_impl 可以包你現有的 DDH-OT1ofm 實作
-    """
-    server: ServerHandler
-    session_id: str
-    run_ot_1ofm: Callable[[List[bytes], bytes, int], bytes]
+        aad, payload = self.get_row_payload(row)
+        # 服务器（真源）给出该逻辑列对应的“正确种子”
+        seed_srv = self.server.sessions.derive_seed(self.session_id, row, logical_col, self.seed_k_bytes)
 
-    def acquire_gk(self, *, row_id: int, m: int, col: int, aad: bytes) -> bytes:
-        aad_srv, payload = self.server.ot_row_payload(self.session_id, row_id)
-        if aad_srv != aad:
-            raise ValueError("AAD mismatch between client and server for the requested row")
-        if len(payload) != m:
-            raise ValueError(f"server payload length {len(payload)} != m={m}")
-        if not (0 <= col < m):
-            raise ValueError("col out of range for this row")
-        # 交給你注入的 OT 實作（BYTES 模式 + 綁定 AAD）
-        gk = self.run_ot_1ofm(payload, aad, col)
-        if not isinstance(gk, (bytes, bytearray)):
-            raise TypeError("run_ot_1ofm must return bytes")
-        return bytes(gk)
+        # 扫描这一行 payload 的每个物理槽位，寻找与 seed_srv 一致的 GK
+        for slot, gk in enumerate(payload):
+            seed_cli = seed_from_gk(gk, row, logical_col, self.seed_k_bytes)
+            if seed_cli == seed_srv:
+                self._slot_map[key] = slot
+                return slot
+
+        raise ValueError(f"cannot resolve payload slot for row={row} logical_col={logical_col} (payload mismatch)")
+
+    def choose_one(self, row: int, logical_col: int) -> bytes:
+        self.ensure_row_payload_cached(row)
+        slot = self._resolve_slot_for_col(row, logical_col)
+        _, payload = self._row_payload_cache[row]
+        return payload[slot]

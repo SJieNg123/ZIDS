@@ -1,4 +1,4 @@
-# src/server/online/gk_loader.py
+# -*- coding: utf-8 -*-
 from __future__ import annotations
 import json, os
 from typing import List
@@ -13,6 +13,7 @@ def load_gk_store_from_files(dirpath: str) -> GKStore:
     num_rows: int = int(meta["num_rows"])
     cols_per_row: List[int] = list(map(int, meta["cols_per_row"]))
     k_bytes: int = int(meta["k_bytes"])
+    # 读二进制表
     with open(bin_path, "rb") as f:
         blob = f.read()
     table: List[List[bytes]] = []
@@ -24,6 +25,8 @@ def load_gk_store_from_files(dirpath: str) -> GKStore:
         table.append(row)
     if p != len(blob):
         raise ValueError("gk_table.bin size mismatch with meta")
+    if len(table) != num_rows:
+        raise ValueError("gk rows mismatch with meta")
     return GKStore(table)
 
 def load_gk_store_from_master(master_key: bytes, cols_per_row: List[int], k_bytes: int) -> GKStore:

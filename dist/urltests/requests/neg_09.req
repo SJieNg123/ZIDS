@@ -1,4 +1,4 @@
-GET /path/ HTTP/1.1
+GET /path/lethbridgeherald_com HTTP/1.1
 Host: example.com
 User-Agent: zids-test
 

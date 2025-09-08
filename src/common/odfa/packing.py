@@ -34,13 +34,18 @@ def plan_cell_format(num_states: int, pack: PackingParams, *, aid_bits: int = 16
     """
     if num_states <= 0:
         raise ValueError("num_states must be positive")
+
     ns_bits = max(1, (num_states - 1).bit_length())
-    if aid_bits <= 0:
-        raise ValueError("aid_bits must be positive")
+
+    # 允许 0 位 AID（cell 不承载 AID；AID 走行级 row_aids.bin）
+    if aid_bits < 0:
+        raise ValueError("aid_bits must be >= 0")
+
     total_needed = ns_bits + aid_bits
     if total_needed > pack.gdfa_cell_pad_bits:
         raise ValueError(
             f"gdfa_cell_pad_bits ({pack.gdfa_cell_pad_bits}) too small for ns_bits({ns_bits})+aid_bits({aid_bits})"
         )
+
     pad_bits = pack.gdfa_cell_pad_bits - total_needed
     return CellFormat(ns_bits=ns_bits, aid_bits=aid_bits, pad_bits=pad_bits)

@@ -1,4 +1,4 @@
-GET /path/thecatholictravelguide.com HTTP/1.1
+GET /path/thelibertydaily.com HTTP/1.1
 Host: example.com
 User-Agent: zids-test
 

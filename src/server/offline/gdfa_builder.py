@@ -1,32 +1,44 @@
 # src/server/offline/gdfa_builder.py
 from __future__ import annotations
+
 import os
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Callable
+from typing import Callable, Iterable, Iterator, List, Optional
 
-from src.common.odfa.params import SecurityParams, SparsityParams, PackingParams, make_packing
-from src.common.odfa.matrix import ODFA, ODFARow, ODFAEdge, pad_row_to_outmax
+from src.common.odfa.params import (
+    SecurityParams,
+    SparsityParams,
+    PackingParams,
+    make_packing,
+)
+from src.common.odfa.matrix import ODFA, ODFARow, pad_row_to_outmax
 from src.common.odfa.packing import CellFormat, plan_cell_format
-from src.common.odfa.permutation import sample_perm, inverse_perm
-from src.common.crypto.prg import G_bits
+from src.common.odfa.permutation import inverse_perm, sample_perm
+from src.common.crypto.prg import prg
+from src.common.odfa.seed_rules import PRG_LABEL_CELL
 
 
 # =========================
-# Bytes packing for a cell
+# Byte packing for a cell
 # =========================
 
-def _pack_bits(ns: int, aid: int, fmt: CellFormat) -> bytes:
+# src/server/offline/gdfa_builder.py
+def _pack_bits(next_row_perm: int, attack_id: int, fmt) -> bytes:
     """
-    Pack PER(next_state) and attack_id into MSB-first bitstring of fmt.total_bits,
-    then to bytes. Padding bits are zero.
+    生成定长明文 cell（LE 布局）：
+      - [next_row (fmt.ns_bits)] + [aid (fmt.aid_bits，如>0)] + [zero padding]
+    允许 aid_bits==0：此时不写 AID 段。
+    超出位宽的 AID 会被掩码到 fmt.aid_bits，避免构建因越界中断。
     """
-    if ns < 0 or ns >= (1 << fmt.ns_bits):
-        raise ValueError("next_state index out of range for ns_bits")
-    if aid < 0 or aid >= (1 << fmt.aid_bits):
-        raise ValueError("attack_id out of range for aid_bits")
-    v = ((ns << fmt.aid_bits) | aid) << fmt.pad_bits
-    return v.to_bytes(fmt.total_bytes, "big")
+    ns_mask = (1 << fmt.ns_bits) - 1
+    out = (int(next_row_perm) & ns_mask)
 
+    if getattr(fmt, "aid_bits", 0) > 0:
+        aid_mask = (1 << fmt.aid_bits) - 1
+        out |= (int(attack_id) & aid_mask) << fmt.ns_bits
+
+    # pad_bits 全 0；按总字节数导出
+    return int(out).to_bytes(fmt.total_bytes, "little", signed=False)
 
 # =========================
 # Outputs (public header / secrets / stream)
@@ -82,19 +94,8 @@ def build_gdfa_stream(
     sp: SparsityParams,
     *,
     aid_bits: int = 16,
-    # Optional: integrate your online GK→seed rule here so offline rows match online tokens.
-    # Signature: pad_seed_fn(new_row: int, col: int, k_bytes: int) -> bytes (length == k_bytes)
     pad_seed_fn: Optional[Callable[[int, int, int], bytes]] = None,
 ) -> GDFAStream:
-    """
-    Build a GDFA as a row-stream, reusing common ODFA types, packing, and permutation helpers.
-
-    NOTE (integration with online OT):
-      If you want the client to decrypt using GK tokens, pass pad_seed_fn implementing:
-        seed = PRF(GK[row][col], b"ZIDS|SEED|row="||I2OSP(row,4)||b"|col="||I2OSP(col,2), k_bytes)
-      Then pad = PRG(seed, gdfa_cell_pad_bits, label="PRG|GDFA|cell").
-      The same rule must be used by the client oracle.
-    """
     # 1) Packing params and sanity checks
     pack: PackingParams = make_packing(sec, sp)
     odfa.sanity_check(outmax=sp.outmax)
@@ -106,9 +107,12 @@ def build_gdfa_stream(
     row_bytes = sp.outmax * cell_bytes
 
     # 3) Permutation (PER) and its inverse
-    perm = sample_perm(odfa.num_states)           # new_row -> old_state
-    inv_perm = inverse_perm(perm)                 # old_state -> new_row
-    start_row = inv_perm[odfa.start_state]
+    perm: List[int] = sample_perm(odfa.num_states)    # new_row -> old_state
+    inv_perm: List[int] = inverse_perm(perm)          # old_state -> new_row
+    start_row: int = inv_perm[odfa.start_state]
+
+    # ===== 新增：按“目标状态(逻辑 old_state)”聚合的行级 AID =====
+    row_aids: List[int] = [0] * odfa.num_states
 
     # 4) Pre-sample per-cell seeds (server-only)
     pad_seeds: List[List[bytes]] = []
@@ -138,23 +142,53 @@ def build_gdfa_stream(
     secrets = GDFASecrets(pad_seeds=pad_seeds, inv_permutation=inv_perm)
 
     # 5) Row generator in PER order
-    def _row_iter() -> Iterable[bytes]:
+    def _row_iter() -> Iterator[bytes]:
         for new_row, old_state in enumerate(perm):
-            # pad row to outmax using common helper (dummy edges are: group_id=-1, next_state=0, attack_id=0)
             base_row: ODFARow = odfa.rows[old_state]
             padded: ODFARow = pad_row_to_outmax(base_row, outmax=sp.outmax)
 
             cells_enc: List[bytes] = []
             for c, edge in enumerate(padded.edges):
-                ns_perm = inv_perm[edge.next_state]          # map target state to its PER row id
-                pt = _pack_bits(ns_perm, edge.attack_id, fmt)  # fixed-length plaintext cell
-                seed = secrets.pad_seeds[new_row][c]
-                pad = G_bits(seed, pack.gdfa_cell_pad_bits, label=b"PRG|GDFA|cell")
-                ct = bytes(a ^ b for a, b in zip(pt, pad))
+                # ---- 提取逻辑目标状态（0 是合法值，不能用“or”）----
+                ns_logical = None
+                for _name in ("next_state", "dst", "to"):
+                    if hasattr(edge, _name):
+                        ns_logical = getattr(edge, _name)
+                        break
+                if ns_logical is None:
+                    # 如果你的 pad_row_to_outmax 可能生成“占位边”，它们通常也带 next_state；
+                    # 真没有就认定为自环，避免构建中断 —— 更稳妥。
+                    ns_logical = old_state  # 自环
+                # 基本范围校验
+                if not (0 <= int(ns_logical) < odfa.num_states):
+                    raise ValueError(f"bad next_state {ns_logical} at row={old_state} col={c}")
+
+                # ---- 提取 AID（>0 代表命中；未知字段名都兼容）----
+                aid_val = 0
+                for _name in ("attack_id", "aid", "accept_id", "rule_id"):
+                    if hasattr(edge, _name):
+                        v = getattr(edge, _name)
+                        # 某些实现可能把“无 AID”设为 None；统一成 0
+                        aid_val = int(v) if v is not None else 0
+                        break
+
+                # ===== 聚合行级 AID：把命中记到“目标状态”的表（首个非零为准）=====
+                if aid_val > 0 and row_aids[int(ns_logical)] == 0:
+                    row_aids[int(ns_logical)] = aid_val
+
+                # ---- PER 映射 + 打包/加密 ----
+                ns_perm = inv_perm[int(ns_logical)]
+                plain  = _pack_bits(ns_perm, aid_val, fmt)
+                seed   = secrets.pad_seeds[new_row][c]
+                pad    = prg(seed, PRG_LABEL_CELL, cell_bytes)
+                ct     = bytes(a ^ b for a, b in zip(plain, pad))
                 cells_enc.append(ct)
 
-            row_bytes_buf = b"".join(cells_enc)
-            assert len(row_bytes_buf) == row_bytes
-            yield row_bytes_buf
+            row_buf = b"".join(cells_enc)
+            assert len(row_buf) == row_bytes
+            yield row_buf
 
-    return GDFAStream(public=public, secrets=secrets, rows=_row_iter())
+    # ===== 新增：把行级 AID 挂在返回的 stream 上（离线写 row_aids.bin 用）=====
+    stream = GDFAStream(public=public, secrets=secrets, rows=_row_iter())
+    setattr(stream, "row_aids", row_aids)
+    return stream
