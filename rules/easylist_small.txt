@@ -1,10 +1,4 @@
-aid:6000 Host:\s*([^.]+\.)*sub\.kvaseshumoral\.rest
-aid:6001 Host:\s*([^.]+\.)*sub\.luxupcdnc\.com
-aid:6002 Host:\s*([^.]+\.)*sub\.recitdams\.com
-aid:6003 \#\#\.ads\-btm
-aid:6004 \#\#\.right\-sidebar\-box\-ads
-aid:6005 Host:\s*([^.]+\.)*sub\.arditistoppit\.shop
-aid:6006 Host:\s*([^.]+\.)*sub\.oundhertobeconsi\.com
-aid:6007 thelibertydaily\.com\#\#a\[href/="https://www\.mypillow\.com"\]
-aid:6008 lethbridgeherald\.com\#\#\#stickybox
-aid:6009 Host:\s*([^.]+\.)*sub\.uptafashib\.com
+﻿[Adblock Plus 2.0]
+||ads.example.com^
+@@||ads.example.com/whitelist.js
+||tracker.com^$third-party
