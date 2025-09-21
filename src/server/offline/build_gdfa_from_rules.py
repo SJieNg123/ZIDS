@@ -9,7 +9,7 @@ import sys
 import struct
 from typing import Dict, List, Optional, Tuple
 
-from src.server.io.rule_loader import LoaderConfig, load_rules
+from src.server.io.rule_loader import LoadRulesConfig, load_rules
 from src.server.offline.dfa_combiner import rules_to_odfa_and_dfa_trans
 from src.server.offline.dfa_optimizer.sparsity_analysis import analyze_odfa_sparsity
 from src.server.offline.dfa_optimizer.char_grouping import (
@@ -304,7 +304,7 @@ def main(argv: List[str]) -> None:
         raise SystemExit("Use either --master-key-hex OR --gk-from-master-hex (they are mutually exclusive).")
 
     # 1) Load rules
-    lcfg = LoaderConfig(
+    lcfg = LoadRulesConfig(
         combine_contents=args.combine_contents,
         content_gap_max=args.content_gap_max,
         default_dotall=args.default_dotall,

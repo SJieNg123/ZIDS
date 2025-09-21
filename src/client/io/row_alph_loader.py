@@ -26,7 +26,7 @@ class RowAlphabetMap:
       - get_cols(row, byte)                   -> List[int]    （候选列集合；旧布局退化为 [get_col]）
     """
 
-    # ---- 装载 ----
+    # ---- 装载（目录） ----
     @staticmethod
     def load(dirpath: str) -> "RowAlphabetMap":
         meta_path = os.path.join(dirpath, "row_alph.json")
@@ -108,3 +108,30 @@ class RowAlphabetMap:
     def _check_row(self, row: int) -> None:
         if not (0 <= row < self.meta.num_rows):
             raise IndexError("row out of range")
+
+# ===== 新增：方便函数，讓 engine.init_for_cli() 可以匯入 =====
+def load_row_alph(path_or_dir: str) -> RowAlphabetMap:
+    """
+    載入 RowAlphabetMap：
+      - 給「目錄」：目錄下必須有 row_alph.json + row_alph.bin
+      - 給「檔案路徑」（通常是 row_alph.bin）：會到**同一目錄**找 row_alph.json
+    """
+    if os.path.isdir(path_or_dir):
+        return RowAlphabetMap.load(path_or_dir)
+
+    # 檔案路徑
+    dirpath = os.path.dirname(path_or_dir) or "."
+    meta_path = os.path.join(dirpath, "row_alph.json")
+    if not os.path.exists(meta_path):
+        raise FileNotFoundError(f"row_alph.json not found beside '{path_or_dir}'")
+
+    with open(meta_path, "rb") as f:
+        meta_obj = json.loads(f.read().decode("utf-8"))
+    meta = RowAlphabetMeta(
+        num_rows=int(meta_obj["num_rows"]),
+        cols_per_row=list(map(int, meta_obj["cols_per_row"])),
+        format=str(meta_obj.get("format", "")),
+    )
+    with open(path_or_dir, "rb") as f:
+        tbl = f.read()
+    return RowAlphabetMap(meta, tbl)

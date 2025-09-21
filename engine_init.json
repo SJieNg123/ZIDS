@@ -1,0 +1,7 @@
+﻿{
+  "gdfa": ".\\artifacts\\gdfa.bin",
+  "rowalph": ".\\artifacts\\row_alph.bin",
+  "session_id": "cli",
+  "chooser_cls": "src.client.online.chooser_http:HttpChooser",
+  "chooser_kwargs": { "base_url": "http://127.0.0.1:8080" }
+}
