@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import sys
 import inspect
+import time
 from pathlib import Path
 from typing import Any, Callable, Tuple, List
 
@@ -91,11 +92,12 @@ def _write_row_alphabet(outdir: Path, num_rows: int, cols_per_row: List[int], ta
     )
     (outdir / "row_alph.bin").write_bytes(table_bytes)
 
-def _prefilter_specs(specs: List[Any]) -> List[Any]:
+def _prefilter_specs(specs: List[Any], interval: int = 1000) -> List[Any]:
     out: List[Any] = []
     bad: List[tuple[int, str, str]] = []
     total = len(specs)
     print(f"[filter] pre-compiling {total} rules ...", flush=True)
+    t0 = time.time()
     for idx, s in enumerate(specs, 1):
         pat = getattr(s, "pattern", "")
         flags = getattr(s, "flags", None)
@@ -105,8 +107,10 @@ def _prefilter_specs(specs: List[Any]) -> List[Any]:
             out.append(s)
         except Exception as e:
             bad.append((aid, pat, repr(e)))
-        if (idx % 1000) == 0 or idx == total:
-            print(f"[filter] {idx}/{total} done (ok={len(out)}, drop={len(bad)})", flush=True)
+        if (idx % interval) == 0 or idx == total:
+            dt = time.time() - t0
+            rate = idx / dt if dt > 0 else 0.0
+            print(f"[filter] {idx}/{total} ok={len(out)} drop={len(bad)} ({rate:.1f}/s)", flush=True)
     if bad:
         log = Path("out/invalid_rules.txt")
         log.parent.mkdir(parents=True, exist_ok=True)
@@ -120,8 +124,26 @@ def _prefilter_specs(specs: List[Any]) -> List[Any]:
         _die("all rules failed to compile; see out/invalid_rules.txt")
     return out
 
+def _install_compile_tracker(total: int, interval: int = 200):
+    """
+    在 rules→ODFA 階段，鉤住 compile_regex_to_dfa() 打印進度。
+    """
+    import src.server.offline.rules_to_dfa.regex_to_dfa as r2d
+    orig = r2d.compile_regex_to_dfa
+    state = {"n": 0, "t0": time.time()}
+    def wrapped(pattern, *args, **kwargs):
+        state["n"] += 1
+        n = state["n"]
+        if n == 1 or (n % interval) == 0 or n == total:
+            dt = time.time() - state["t0"]
+            rate = n / dt if dt > 0 else 0.0
+            print(f"[odfa] regex→DFA {n}/{total} ({rate:.1f}/s)", flush=True)
+        return orig(pattern, *args, **kwargs)
+    r2d.compile_regex_to_dfa = wrapped  # type: ignore[attr-defined]
+    return orig  # 方便還原
+
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Direct builder: EasyList -> GDFA artifacts (verbose/progress)")
+    ap = argparse.ArgumentParser(description="Direct builder: EasyList -> GDFA artifacts (with progress)")
     ap.add_argument("--easylist", required=True, help="Path to EasyList (.txt)")
     ap.add_argument("--outdir", default="artifacts", help="Output directory")
     ap.add_argument("--format", choices=["container", "jsonbin"], default="container")
@@ -132,6 +154,7 @@ def main() -> None:
     ap.add_argument("--master-key-hex")
     ap.add_argument("--gk-from-master-hex", dest="gk_from_master_hex")
     ap.add_argument("--gk-bytes", type=int, default=32)
+    ap.add_argument("--progress-interval", type=int, default=200, help="print every N regex→DFA compiles")
     args = ap.parse_args()
 
     easylist = Path(args.easylist)
@@ -148,11 +171,21 @@ def main() -> None:
 
     specs_ok = _prefilter_specs(specs)
 
+    # 裝進度鉤子
+    orig = _install_compile_tracker(len(specs_ok), interval=args.progress_interval)
+
     print("[stage] rules → ODFA + DFA transitions ...", flush=True)
     odfa, dfa_trans = _call_flex(
         rules_to_odfa_and_dfa_trans, specs_ok,
         outmax=args.outmax, cmax=args.cmax, aid_bits=args.aid_bits
     )
+    # 還原原函式（保險）
+    try:
+        import src.server.offline.rules_to_dfa.regex_to_dfa as r2d
+        r2d.compile_regex_to_dfa = orig  # type: ignore
+    except Exception:
+        pass
+
     print("[stage] ODFA/dfa_trans built", flush=True)
 
     print("[stage] DFA transitions → RowAlphabet ...", flush=True)
@@ -169,7 +202,7 @@ def main() -> None:
     print(f"[stage] RowAlphabet ready (rows={len(cols_per_row)})", flush=True)
 
     print("[stage] ODFA → GDFA stream ...", flush=True)
-    sec = SecurityParams(k=args.outmax, kprime=args.outmax, kappa=args.outmax)  # 先用 outmax 餵；實際由模組決定用法
+    sec = SecurityParams(k=args.outmax, kprime=args.outmax, kappa=args.outmax)  # 先用 outmax 餵；實際值由模組決定
     spa = SparsityParams(outmax=args.outmax, cmax=args.cmax, aid_bits=args.aid_bits)
     gdfa_header, gdfa_stream = _call_flex(
         build_gdfa_stream, odfa, sec, spa,
