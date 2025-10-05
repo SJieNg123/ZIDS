@@ -1,4 +1,0 @@
-﻿[Adblock Plus 2.0]
-||ads.example.com^
-@@||ads.example.com/whitelist.js
-||tracker.com^$third-party

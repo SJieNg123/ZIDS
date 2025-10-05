@@ -1,30 +1,32 @@
 # tools/export_id_to_action.py
 from __future__ import annotations
-import argparse, json, os, sys
+import argparse, json
 from pathlib import Path
 
-# 讓 src/** 可被匯入
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from src.server.io.rule_loader import load_rules, LoadRulesConfig  # type: ignore
-
 def main():
-    ap = argparse.ArgumentParser(description="Export rule_id→action map from EasyList (in load order).")
-    ap.add_argument("--easylist", required=True, help="Path to EasyList (full .txt).")
-    ap.add_argument("--out", default="out/id_to_action.json", help="Output JSON path.")
+    ap = argparse.ArgumentParser(description="Export id->action from ABP file (1-based, @@ => ALLOW).")
+    ap.add_argument("--easylist", required=True, help="ABP/EasyList file")
+    ap.add_argument("--out", required=True, help="Output JSON path")
     args = ap.parse_args()
 
-    specs = load_rules([args.easylist], LoadRulesConfig())
-    id_to_action = {str(i): (s.action if getattr(s, "action", None) else "BLOCK") for i, s in enumerate(specs)}
+    src = Path(args.easylist)
+    lines = src.read_text(encoding="utf-8", errors="ignore").splitlines()
 
-    out_path = Path(args.out)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    with out_path.open("w", encoding="utf-8") as f:
-        json.dump(id_to_action, f, ensure_ascii=False, indent=2)
+    actions = []
+    for raw in lines:
+        s = raw.strip()
+        if not s or s.startswith("!") or s.startswith("["):
+            continue
+        # 以 ABP 原始語法為準
+        act = "ALLOW" if s.startswith("@@") else "BLOCK"
+        actions.append(act)
 
-    print(f"[exported] {len(id_to_action)} entries → {out_path}")
+    # 1-based ID 映射
+    idmap = {str(i): act for i, act in enumerate(actions, 1)}
+
+    outp = Path(args.out); outp.parent.mkdir(parents=True, exist_ok=True)
+    outp.write_text(json.dumps(idmap, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[exported] {len(idmap)} entries → {outp}")
 
 if __name__ == "__main__":
     main()

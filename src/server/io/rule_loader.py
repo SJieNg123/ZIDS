@@ -20,27 +20,45 @@ class LoaderConfig:
 # 舊名相容
 LoadRulesConfig = LoaderConfig
 
-def _looks_like_abp(path: str, sniff: int = 32) -> bool:
-    """輕量偵測 ABP/EasyList 檔頭。"""
+def _looks_like_abp(path: str, sniff_lines: int = 64) -> bool:
+    """
+    判斷檔案是否 ABP/EasyList：
+      - 副檔名是 .abp → 一律當 ABP
+      - 內容包含典型 ABP 語法：以 @@ / || / | 開頭、含 $ 修飾、##/#[…] 選擇器等
+      - 或傳統 header: “[Adblock …]”, “! Title: …”
+    """
+    ext = os.path.splitext(path)[1].lower()
+    if ext == ".abp":
+        return True
+
+    abp_sig = (
+        lambda s: s.startswith("@@") or
+                  s.startswith("||") or
+                  s.startswith("|") or                               # |http://…
+                  "$" in s or                                        # $script, $domain=…
+                  "##" in s or "#@#" in s or "##+js" in s
+    )
     try:
         with open(path, "r", encoding="utf-8", errors="ignore") as f:
             for i, line in enumerate(f):
-                if i >= sniff:
+                if i >= sniff_lines:
                     break
                 s = line.strip()
                 if not s:
                     continue
-                if s.startswith("[Adblock"):
+                if s.startswith("[Adblock") or s.startswith("! Title:") or s.startswith("! Version:"):
                     return True
-                if s.startswith("! Title:") or s.startswith("! Version:"):
-                    return True
-                if "Adblock" in s:
+                if s.startswith("!"):   # 註解行跳過
+                    continue
+                if abp_sig(s):
                     return True
         return False
     except FileNotFoundError:
         raise
     except Exception:
+        # 讀失敗就保守否
         return False
+
 
 # -- 兼容兩種 parse_easylist 介面：優先「吃路徑」，退回「吃檔案物件」 --
 def _parse_easylist_flex(path: str) -> List[Any]:

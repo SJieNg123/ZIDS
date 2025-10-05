@@ -1,6 +1,5 @@
 # src/server/offline/gdfa_builder.py
 from __future__ import annotations
-
 import os
 from dataclasses import dataclass
 from typing import Callable, Iterable, Iterator, List, Optional
@@ -98,6 +97,7 @@ def build_gdfa_stream(
     # Optional: plug the online GK→seed rule so offline rows match online decryption.
     # Signature: pad_seed_fn(new_row: int, col: int, k_bytes: int) -> bytes  (len == k_bytes)
     pad_seed_fn: Optional[Callable[[int, int, int], bytes]] = None,
+    permute: bool = False, # 可關閉 PER 置換（debug 用）
 ) -> GDFAStream:
     """
     Build a GDFA row-stream using common ODFA types, packing, and permutation helpers.
@@ -119,12 +119,67 @@ def build_gdfa_stream(
     row_bytes = sp.outmax * cell_bytes
 
     # 3) Permutation (PER) and its inverse
-    perm: List[int] = sample_perm(odfa.num_states)    # new_row -> old_state
-    inv_perm: List[int] = inverse_perm(perm)          # old_state -> new_row
+    if permute:
+        perm: List[int] = sample_perm(odfa.num_states)   # new_row -> old_state
+    else:
+        perm = list(range(odfa.num_states))              # identity：PER(new_row)=old_state
+    inv_perm: List[int] = inverse_perm(perm)             # old_state -> new_row
     start_row: int = inv_perm[odfa.start_state]
 
-    # ===== 在“逻辑状态(= old_state)空间”聚合行级 AID；稍后映射到 PER(new_row) 空间 =====
-    row_aids_logical: List[int] = [0] * odfa.num_states
+    def _state_aid(state: int) -> int:
+        """盡量從『狀態/row』本身讀 AID；常見欄位名都試一輪。"""
+        row = odfa.rows[state]
+        for name in ("attack_id", "aid", "accept_id", "rule_id"):
+            if hasattr(row, name):
+                v = getattr(row, name)
+                if v is not None:
+                    try:
+                        iv = int(v)
+                        if iv > 0:
+                            return iv
+                    except Exception:
+                        pass
+        # 有些 ODFA 把接受集合放在 odfa 層級陣列/字典裡
+        for name in ("accept_ids", "accepting", "accept", "accept_map"):
+            if hasattr(odfa, name):
+                m = getattr(odfa, name)
+                try:
+                    # 支援 list/dict 兩種
+                    v = m[state] if isinstance(m, (list, tuple)) else m.get(state, 0)
+                    iv = int(v)
+                    if iv > 0:
+                        return iv
+                except Exception:
+                    pass
+        return 0
+
+    def _extract_row_aids_from_odfa(odfa) -> list[int]:
+        n = int(getattr(odfa, "num_states", 0) or 0)
+        if n <= 0: return []
+        for name in ("accept_ids","row_aids","aid_by_state","accept_map","accepting","accept"):
+            v = getattr(odfa, name, None)
+            if isinstance(v, (list, tuple)) and len(v) == n:
+                return [int(x or 0) for x in v]
+            if isinstance(v, dict):
+                return [int(v.get(i, 0) or 0) for i in range(n)]
+        rows = getattr(odfa, "rows", None)
+        if isinstance(rows, list) and len(rows) == n:
+            out = [0]*n
+            for i, row in enumerate(rows):
+                for k in ("attack_id","aid","accept_id","rule_id"):
+                    if hasattr(row, k):
+                        try:
+                            iv = int(getattr(row, k) or 0)
+                        except Exception:
+                            iv = 0
+                        if iv > 0:
+                            out[i] = iv
+                            break
+            return out
+        return [0]*n
+    row_aids_logical = _extract_row_aids_from_odfa(odfa)
+    # for s in range(odfa.num_states):
+    #     row_aids_logical[s] = _state_aid(s)
 
     # 4) Pre-sample per-cell seeds (server-only)
     pad_seeds: List[List[bytes]] = []
@@ -161,16 +216,13 @@ def build_gdfa_stream(
 
             cells_enc: List[bytes] = []
             for c, edge in enumerate(padded.edges):
-                # ---- 提取逻辑目标状态（0 是合法值，不能用“or”）----
                 ns_logical = None
                 for _name in ("next_state", "dst", "to"):
                     if hasattr(edge, _name):
                         ns_logical = getattr(edge, _name)
                         break
                 if ns_logical is None:
-                    # 某些占位边可能不带字段；保守自环，避免构建中断
                     ns_logical = old_state
-
                 ns_logical = int(ns_logical)
                 if not (0 <= ns_logical < odfa.num_states):
                     raise ValueError(f"bad next_state {ns_logical} at row={old_state} col={c}")
@@ -182,10 +234,9 @@ def build_gdfa_stream(
                         v = getattr(edge, _name)
                         aid_val = int(v) if v is not None else 0
                         break
-
-                # ===== 在逻辑空间聚合：把 AID 记到目标状态（首个非零为准）=====
-                if aid_val > 0 and row_aids_logical[ns_logical] == 0:
-                    row_aids_logical[ns_logical] = aid_val
+                
+                if (aid_val or 0) == 0:
+                    aid_val = int(row_aids_logical[ns_logical] if 0 <= ns_logical < len(row_aids_logical) else 0)
 
                 # ---- PER 映射 + 打包/加密 ----
                 ns_perm = inv_perm[ns_logical]  # 目标状态映射到 PER 行号
@@ -206,8 +257,6 @@ def build_gdfa_stream(
     row_aids_per: List[int] = [0] * odfa.num_states
     for new_row, old_state in enumerate(perm):
         row_aids_per[new_row] = row_aids_logical[old_state]
-
-    # 挂载给离线导出器使用（写 row_aids.bin）
     setattr(stream, "row_aids", row_aids_per)
 
     return stream
