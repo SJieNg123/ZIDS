@@ -1,0 +1,6 @@
+.venv-v2/
+__pycache__/
+*.pyc
+.pytest_cache/
+v2-runs/
+node_modules/
