@@ -2,8 +2,9 @@ import itertools
 import json
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
-from src.zids_v2.automata import CompileLimit
+from src.zids_v2.automata import CompileLimit, NFA
 from src.zids_v2.compiler import compile_sources, policy_dict, policy_dfa
 from src.zids_v2.context import RequestContext
 from src.zids_v2.contracts import OTContext
@@ -62,6 +63,30 @@ class CompilerTests(unittest.TestCase):
             compile_sources([('bounded','||ads.example^')], max_nfa=10)
         with self.assertRaises(CompileLimit):
             compile_sources([('bounded','||ads.example^')], seconds=0)
+
+    def test_default_compiler_crosses_previous_state_and_time_caps(self):
+        nfa = NFA()
+        # A clock jump beyond the old deadline must not end an unlimited run.
+        with patch('src.zids_v2.automata.perf_counter',return_value=10**12):
+            start, end = nfa.literal(b'a'*20001)
+            nfa.outputs[end] = 2
+            dfa, _ = nfa.determinize(start)
+            self.assertGreater(dfa.q,20000)
+            self.assertEqual(dfa.evaluate(b'a'*20001),1)
+            self.assertEqual(dfa.evaluate(b'a'*20000),0)
+            while len(nfa.edges) <= 100000:
+                nfa.state()
+        self.assertEqual(len(nfa.edges),100001)
+
+    def test_progress_preserves_output_and_reports_compilation_stages(self):
+        events = []
+        dfa, provenance, _ = compile_sources([('progress','*ad*\n@@*ok*')],progress=events.append)
+        self.assertEqual([event['stage'] for event in events],
+                         ['regex_validation','construction','alphabet_index','determinization',
+                          'minimization','grouping','compiled'])
+        self.assertEqual(events[-1]['q'],provenance['stats']['q'])
+        self.assertEqual([dfa.evaluate(RequestContext('https://a/'+suffix,'image','https://b/').encode())
+                          for suffix in ('ad','adok','xx')],[1,2,0])
 
     def test_reference_dfa_and_real_ot_gdfa_agree(self):
         source = '*ad*\n@@*ok*'

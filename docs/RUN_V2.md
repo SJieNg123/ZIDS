@@ -60,6 +60,19 @@ on both commands, plus `--server-name NAME` on the client when the certificate
 name differs from `--host`. Certificate validation cannot be disabled in the CLI.
 
 For another rules file, run `compile --rules FILE --output NEW_DIRECTORY`.
+Compilation defaults to unlimited states and runtime. To run the large compiler
+experiments sequentially without state or time caps, use a fresh directory:
+
+```text
+python -m tools.benchmark_v2 --output v2-runs/unlimited-compile --scales profile2000 full --secure-scales
+```
+
+The empty `--secure-scales` selects compilation and reference comparisons only.
+Each scale retains `compile-progress.jsonl`, its final record and any policy.
+The run continues until completion or an actual process/resource failure.
+Optional `--max-nfa`, `--max-dfa` and `--seconds` reproduce explicitly bounded
+experiments. Omitting them also disables the outer compile-worker timeout.
+
 `coverage` accepts the same rules/output arguments and writes the per-line report
 without building a DFA. Compilation errors retain coverage and never drop an
 unsupported network rule silently. The public session exposes n, q, outmax, cmax
@@ -73,7 +86,7 @@ python tools/check_v2_crypto.py
 python -m unittest discover -s tests_v2 -v
 ```
 
-On Windows Python 3.12, the final suite passed 40 tests in 50.466 seconds. See
+On Windows Python 3.12, the 2026-10-05 suite passed 46 tests in 34.760 seconds. See
 [BENCHMARK_V2.md](BENCHMARK_V2.md) for measured capacity, timings and remaining
 large-profile limits. Linux commands and CI are provided, but Linux execution
 has not yet been verified in this workspace.

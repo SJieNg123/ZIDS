@@ -25,12 +25,20 @@ the same effect cannot change its output and are removed from the subset. Litera
 trie edges use a single new state. These transformations preserve policy effects
 without retaining the identity of a matched rule.
 
-Compiler bounds default to 100,000 NFA states, 20,000 DFA states and 120 seconds
-for whole-policy construction, determinization and minimization. Regex feature
-validation runs separately before whole-policy construction. Exceeding a bound
-is an error, never rule pruning or a plaintext fallback. These are algorithmic
-bounds, not a promise of a fixed process RSS. Python 3.12's regex parser is an
-explicit implementation dependency. Runtime matching does not use it.
+Compilation has no default NFA state, DFA state or time limit. The CLI and
+benchmark run until completion or an actual allocation, process or OS failure.
+`--max-nfa`, `--max-dfa` and `--seconds` are optional, explicitly requested limits
+for reproducing earlier bounded attempts. Omit all three for unlimited compilation.
+Regex feature validation runs separately before whole-policy construction.
+Exceeding an explicitly requested bound is an error, never rule pruning or a
+plaintext fallback. Python 3.12's regex parser is an explicit implementation
+dependency. Runtime matching does not use it.
+
+The benchmark also removes its outer compile-worker timeout when `--seconds`
+is omitted. It monitors worker exit so a killed worker cannot leave its parent
+waiting forever for a missing result. Each scale writes `compile-progress.jsonl`
+with phase changes and periodic NFA/DFA counts, elapsed time, worker PID and peak
+RSS. These are local server diagnostics. They are not protocol messages.
 
 Tests compare the independent ABP reference against 192 context combinations and
 80 regex/domain combinations. Three fresh GDFA evaluations using actual NP base
@@ -38,5 +46,5 @@ OT check BLOCK, ALLOW and NOMATCH against that reference and the plaintext DFA.
 Protocol role separation is additionally tested in independent processes.
 
 The full snapshot's 47,154 parser-supported network rules pass regex feature
-validation. This does not imply that their combined DFA fits the resource bounds.
+validation. This does not imply that their combined DFA fits available hardware.
 The compiler's state counts, grouping bounds and source hashes are server-private.

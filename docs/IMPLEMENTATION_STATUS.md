@@ -4,6 +4,16 @@ Planning commit: `47e4cf2`. User authorized automatic commits after each validat
 
 Latest scope: base OT only. No OT extension or OT-specific preprocessing optimizations. Browser execution excluded.
 
+2026-10-05 execution update: the user requested running DFA compilation until
+completion or hardware/resource failure. Compiler state/time limits and the
+outer benchmark compile-worker timeout are now disabled by default. Optional
+explicit limits remain available to reproduce the historical measurements below.
+Unlimited runs record phase and state counts and detect worker death without a
+deadline. Removing limits alone does not complete full-scale acceptance.
+Validation passed all 46 tests in 34.760 s on Windows Python 3.12. New regressions
+cross the former default NFA/DFA limits, simulate an elapsed deadline, and verify
+progress, allocation-error reporting and hard worker-exit handling.
+
 | Step | Status | Evidence |
 | --- | --- | --- |
 | 1 | Complete | Windows Python 3.12.0 / PyNaCl 1.6.2 native group smoke passed, pip check passed, NP Protocols 3.1 and 2.1 inspected. Linux runtime verification remains for platform CI |

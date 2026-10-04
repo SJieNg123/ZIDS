@@ -4,6 +4,7 @@ from dataclasses import asdict
 import hashlib
 import json
 import multiprocessing as mp
+import os
 from pathlib import Path
 import platform
 import queue as queue_module
@@ -30,8 +31,15 @@ def worker(operation, payload, result, ready=None):
     try:
         if operation == 'compile':
             text = Path(payload['rules']).read_text(encoding='utf8')
-            dfa, provenance, coverage = compile_sources([(Path(payload['rules']).name,text)],
-                                                         **payload.get('bounds',{}))
+            with (Path(payload['output'])/'compile-progress.jsonl').open('x',encoding='utf8',buffering=1) as log:
+                def progress(value):
+                    event = dict(value, worker_pid=os.getpid(), wall_seconds=perf_counter()-wall,
+                                 peak_rss_bytes=peak_rss_bytes())
+                    log.write(json.dumps(event)+'\n')
+                    print(json.dumps(dict(event, scale=Path(payload['output']).name)),flush=True)
+                dfa, provenance, coverage = compile_sources([(Path(payload['rules']).name,text)],
+                                                            progress=progress, **payload.get('bounds',{}))
+                progress({'stage':'policy_write','q':dfa.q})
             write_json(Path(payload['output'])/'policy.json',policy_dict(dfa,provenance))
             value = provenance
         elif operation == 'prepare':
@@ -50,19 +58,35 @@ def worker(operation, payload, result, ready=None):
                     'peak_rss_bytes':peak_rss_bytes()})
 
 
-def isolated(operation, payload, *, timeout=300):
+def isolated(operation, payload, *, timeout=None):
     ctx = mp.get_context('spawn')
     queue = ctx.Queue()
     proc = ctx.Process(target=worker,args=(operation,payload,queue))
     proc.start()
+    started = perf_counter()
     try:
-        try:
-            record = queue.get(timeout=timeout)
-        except queue_module.Empty:
-            return {'status':'failed','error_type':'WorkerTimeout',
-                    'error':'worker did not return within the measurement bound',
-                    'wall_seconds':timeout,'exit_code':proc.exitcode}
-        proc.join(10)
+        while True:
+            elapsed = perf_counter()-started
+            remaining = None if timeout is None else timeout-elapsed
+            if remaining is not None and remaining <= 0:
+                return {'status':'failed','error_type':'WorkerTimeout',
+                        'error':'worker did not return within the requested measurement bound',
+                        'wall_seconds':elapsed,'exit_code':proc.exitcode}
+            try:
+                record = queue.get(timeout=1 if remaining is None else min(1,remaining))
+                break
+            except queue_module.Empty:
+                if not proc.is_alive():
+                    # Normal process exit waits for the queue feeder to flush.
+                    # A hard OS exit may leave no result, even with no timeout.
+                    try:
+                        record = queue.get_nowait()
+                        break
+                    except queue_module.Empty:
+                        return {'status':'failed','error_type':'WorkerExit',
+                                'error':'worker exited without returning a result',
+                                'wall_seconds':perf_counter()-started,'exit_code':proc.exitcode}
+        proc.join()
         if proc.exitcode != 0:
             raise RuntimeError('measurement worker exited abnormally')
         return record
@@ -156,17 +180,19 @@ def fixtures(full_text):
     ]
 
 
-def run(output, *, scales=None, secure_scales=('synthetic','small'), seconds=120, max_nfa=100000, max_dfa=20000):
+def run(output, *, scales=None, secure_scales=('synthetic','small'), seconds=None, max_nfa=None, max_dfa=None):
     output = Path(output)
     output.mkdir(parents=True,exist_ok=False)
     report = {'suite':OT_SUITE,'platform':platform.platform(),'python':sys.version,
               'reference':read_json(ROOT/'tools/reference-lock.json'),'scales':[],
               'measurement':'fresh spawned workers, wall clock, process CPU and OS peak RSS',
               'secure_selection':'first three cases per requested successful scale',
+              'requested_scales':scales,'secure_scales':list(secure_scales),
               'extension':False,'browser_execution':False}
     report['compile_bounds'] = {'seconds':seconds,'max_nfa':max_nfa,'max_dfa':max_dfa}
     report['implementation_sha256'] = {str(p.relative_to(ROOT)).replace('\\','/'):
         hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((ROOT/'src/zids_v2').glob('*.py'))}
+    write_json(output/'report.json',report)
     for relative in list(report['implementation_sha256'])+['requirements-v2.txt','tools/benchmark_v2.py',
                         'tools/reference_matcher.cjs','tools/reference-lock.json','tools/setup_reference.py',
                         'src/zids_v2/data/public_suffixes.json','src/zids_v2/data/ABP-LICENSE.txt',
@@ -196,10 +222,11 @@ def run(output, *, scales=None, secure_scales=('synthetic','small'), seconds=120
                   'reference_seconds':oracle_seconds,'verdict_counts':{str(i):expected.count(i) for i in range(3)}}
         print(json.dumps({'scale':name,'stage':'compile'}),flush=True)
         compiled = isolated('compile',{'rules':str(source),'output':str(directory),
-                                      'bounds':report['compile_bounds']},timeout=seconds+180)
+                                      'bounds':report['compile_bounds']},
+                            timeout=None if seconds is None else seconds+180)
         record['compile'] = compiled
         if compiled['status'] == 'ok':
-            dfa = policy_dfa(read_json(directory/'policy.json',limit=128*1024*1024))
+            dfa = policy_dfa(read_json(directory/'policy.json',limit=None))
             outputs = [dfa.evaluate(c.encode()) for c in contexts]
             record['dfa_mismatches'] = sum(a != b for a,b in zip(outputs,expected))
             if record['dfa_mismatches']:
@@ -218,7 +245,7 @@ def run(output, *, scales=None, secure_scales=('synthetic','small'), seconds=120
                     for i,(context,label) in enumerate(zip(contexts[:3],expected[:3])):
                         print(json.dumps({'scale':name,'stage':'secure','case':i}),flush=True)
                         record['secure'].append(secure_sample(directory/'policy.json',context,directory/('request-'+str(i)),label))
-                if record['resource_check'] != 'ok':
+                if name in secure_scales and record['resource_check'] != 'ok':
                     record['status'] = 'resource_limit'
                 else:
                     record['status'] = 'ok' if all(r['status']=='ok' for r in record['secure']) else 'failed'
@@ -236,9 +263,9 @@ def main():
     parser.add_argument('--output',required=True)
     parser.add_argument('--scales',nargs='+',choices=['synthetic','small','context200','profile2000','full'])
     parser.add_argument('--secure-scales',nargs='*',default=['synthetic','small'])
-    parser.add_argument('--seconds',type=float,default=120)
-    parser.add_argument('--max-nfa',type=int,default=100000)
-    parser.add_argument('--max-dfa',type=int,default=20000)
+    parser.add_argument('--seconds',type=float,help='optional compiler time cap, default unlimited')
+    parser.add_argument('--max-nfa',type=int,help='optional NFA state cap, default unlimited')
+    parser.add_argument('--max-dfa',type=int,help='optional DFA state cap, default unlimited')
     args = parser.parse_args()
     result = run(args.output,scales=args.scales,secure_scales=args.secure_scales,seconds=args.seconds,
                  max_nfa=args.max_nfa,max_dfa=args.max_dfa)

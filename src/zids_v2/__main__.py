@@ -29,9 +29,9 @@ def parser():
         item.add_argument('--rules', nargs='+', required=True)
         item.add_argument('--output', required=True)
         if name == 'compile':
-            item.add_argument('--max-nfa', type=int, default=100000)
-            item.add_argument('--max-dfa', type=int, default=20000)
-            item.add_argument('--seconds', type=float, default=120)
+            item.add_argument('--max-nfa', type=int, help='optional NFA state cap, default unlimited')
+            item.add_argument('--max-dfa', type=int, help='optional DFA state cap, default unlimited')
+            item.add_argument('--seconds', type=float, help='optional compiler time cap, default unlimited')
     item = commands.add_parser('length')
     item.add_argument('--request', required=True)
     for name in ('estimate','prepare'):

@@ -1,4 +1,4 @@
-"""Bounded Thompson construction, byte determinization and output refinement."""
+"""Thompson construction, byte determinization and output refinement."""
 from functools import lru_cache
 from time import perf_counter
 from re import _parser as parser, _constants as C
@@ -28,18 +28,35 @@ def bits(mask):
 
 
 class NFA:
-    def __init__(self, *, max_nfa=100000, max_dfa=20000, seconds=120):
+    def __init__(self, *, max_nfa=None, max_dfa=None, seconds=None, progress=None):
         self.max_nfa, self.max_dfa = max_nfa, max_dfa
-        self.deadline = perf_counter()+seconds
+        self.deadline = None if seconds is None else perf_counter()+seconds
         self.edges, self.eps, self.begin, self.end, self.outputs = [], [], [], [], []
         self.dominance = {}
+        self.progress = progress
+        self.progress_stage, self.progress_counts = 'construction', {}
+        self.next_progress = 0
 
-    def check(self):
-        if perf_counter() >= self.deadline:
+    def check(self, **counts):
+        if self.deadline is None and self.progress is None:
+            return
+        now = perf_counter()
+        if self.deadline is not None and now >= self.deadline:
             raise CompileLimit('compiler time limit exceeded')
+        if self.progress is not None:
+            self.progress_counts.update(counts)
+            if now >= self.next_progress:
+                self.progress(dict(stage=self.progress_stage, nfa_states=len(self.edges),
+                                   **self.progress_counts))
+                self.next_progress = now+10
+
+    def phase(self, stage, **counts):
+        self.progress_stage, self.progress_counts = stage, counts
+        self.next_progress = 0
+        self.check()
 
     def state(self):
-        if len(self.edges) >= self.max_nfa:
+        if self.max_nfa is not None and len(self.edges) >= self.max_nfa:
             raise CompileLimit('NFA state limit exceeded')
         self.check()
         self.edges.append([])
@@ -103,7 +120,7 @@ class NFA:
                 key = repr(token)
                 edges = trie[current]['edges']
                 if key not in edges:
-                    if len(trie) >= self.max_nfa:
+                    if self.max_nfa is not None and len(trie) >= self.max_nfa:
                         raise CompileLimit('regex prefix trie exceeds NFA bound')
                     edges[key] = (token,len(trie))
                     trie.append({'edges':{},'final':False})
@@ -159,7 +176,7 @@ class NFA:
                 fragments.append((a, b))
             elif op in (C.MAX_REPEAT, C.MIN_REPEAT):
                 low, high, child = value
-                if low > self.max_nfa or (high != C.MAXREPEAT and high > self.max_nfa):
+                if self.max_nfa is not None and (low > self.max_nfa or (high != C.MAXREPEAT and high > self.max_nfa)):
                     raise CompileLimit('regex repetition exceeds NFA bound')
                 parts = [self.sequence(child, case) for _ in range(low)]
                 a, b = self.join(parts)
@@ -214,6 +231,7 @@ class NFA:
         return ALL ^ mask if negate else mask
 
     def determinize(self, start):
+        self.phase('alphabet_index')
         # Globally equivalent input bytes are evaluated once per DFA state.
         partitions = [ALL]
         masks = {mask for edges in self.edges for mask, _ in edges} | {1, 1 << 4}
@@ -248,8 +266,9 @@ class NFA:
 
         initial = (closure(1 << start), False)
         states, indices, rows, outputs = [initial], {initial:0}, [], []
+        self.phase('determinization', dfa_states=1, processed_states=0)
         for subset, beginning in states:
-            self.check()
+            self.check(dfa_states=len(states), processed_states=len(rows))
             flags = 0
             for s in bits(subset):
                 flags |= self.outputs[s]
@@ -272,7 +291,7 @@ class NFA:
             for i, move in enumerate(destinations):
                 key = (closure(move), symbols[i] == 4 and bool(move))
                 if key not in indices:
-                    if len(states) >= self.max_dfa:
+                    if self.max_dfa is not None and len(states) >= self.max_dfa:
                         raise CompileLimit('DFA state limit exceeded')
                     indices[key] = len(states)
                     states.append(key)

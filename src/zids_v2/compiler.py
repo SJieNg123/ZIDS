@@ -124,12 +124,14 @@ def regex_coverage(rules):
     return failures
 
 
-def compile_rules(rules, **bounds):
+def compile_rules(rules, *, progress=None, **bounds):
     started = perf_counter()
+    if progress is not None:
+        progress({'stage':'regex_validation', 'rules':len(rules)})
     failures = regex_coverage(rules)
     if failures:
         raise CoverageError({'profile':PROFILE, 'records':failures, 'counts':{'unsupported':len(failures)}})
-    nfa = NFA(**bounds)
+    nfa = NFA(progress=progress, **bounds)
     start, request_start = nfa.literal(HEADER)
     request = any_frame(nfa, REQUEST)
     nfa.eps[request_start].append(request[0])
@@ -169,12 +171,16 @@ def compile_rules(rules, **bounds):
     dfa, alphabet_classes = nfa.determinize(start)
     raw_q = dfa.q
     determinized = perf_counter()
+    nfa.phase('minimization', raw_q=raw_q)
     dfa = minimize(dfa, check=nfa.check, symbols=nfa.symbols)
+    nfa.phase('grouping', q=dfa.q)
     groups = group_characters(dfa.padded())
     stats = {'nfa_states':len(nfa.edges), 'raw_q':raw_q, 'q':dfa.q, 'alphabet_classes':alphabet_classes,
              'outmax':groups.outmax, 'cmax':groups.cmax, 'groups':len(groups.catalog),
              'construction_seconds':construction, 'determinize_seconds':determinized-started-construction,
              'minimize_seconds':perf_counter()-determinized, 'compile_seconds':perf_counter()-started}
+    if progress is not None:
+        progress(dict(stage='compiled', **stats))
     return dfa, stats
 
 

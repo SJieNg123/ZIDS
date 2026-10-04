@@ -1,5 +1,11 @@
 # v2 validation and capacity, 2026-10-04
 
+Compiler execution policy changed on 2026-10-05 at the user's request. State and
+time caps, including the outer compile-worker timeout, are now disabled by
+default. The measurements below are preserved historical bounded attempts and
+do not establish a hardware ceiling. New unlimited runs retain phase/count
+progress and report actual completion, allocation errors or worker exits.
+
 Steps 1–11 implement the supported base-OT protocol and EasyList profile. Step 12
 provides reproducible coverage, differential fixtures, process measurements and
 capacity checks. Full-scale acceptance remains incomplete because the 2,000-rule
@@ -91,8 +97,8 @@ about 1,780 MiB peak RSS. Earlier NFA and DFA limit failures are preserved as we
 
 Further work is required on large-policy construction and determinization.
 Increasing a limit does not establish that the resulting matrix and OT bundles
-will fit their own resource bounds. The current release fails explicitly on
-over-capacity inputs. No full-snapshot result, large-scale speedup or complete
+will fit their own resource bounds. Those bounded attempts stopped explicitly
+at their requested limits. No full-snapshot result, large-scale speedup or complete
 full-profile delivery is claimed.
 
 ## Reproduce

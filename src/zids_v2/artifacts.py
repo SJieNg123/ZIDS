@@ -28,8 +28,8 @@ def write_json(path, value, *, exclusive=True):
 
 def read_json(path, limit=16384):
     with open(path, 'rb') as file:
-        data = file.read(limit+1)
-    if len(data) > limit:
+        data = file.read() if limit is None else file.read(limit+1)
+    if limit is not None and len(data) > limit:
         raise ProtocolError('manifest too large')
     def unique_pairs(pairs):
         result = {}
