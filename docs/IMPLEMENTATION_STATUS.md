@@ -9,7 +9,7 @@ Latest scope: base OT only. No OT extension or OT-specific preprocessing optimiz
 | 1 | Complete | Windows Python 3.12.0 / PyNaCl 1.6.2 native group smoke passed, pip check passed, NP Protocols 3.1 and 2.1 inspected. Linux runtime verification remains for platform CI |
 | 2 | Complete | `python -B -m unittest tests_v2.test_wire -v`, 4 tests passed in 0.111 s, including two spawned processes and malformed/replayed frames |
 | 3 | Complete | NP Protocol 3.1 base OT over native Edwards25519. Base OT + wire suites: 8 tests in 0.226 s, two processes, invalid points, equal-key branch separation and replay |
-| 4 | Pending | NP 1-of-256 PRF reduction |
+| 4 | Complete | All 256 choices with fresh real base OT, four-ciphertext XOR regression, malformed tables and cross-session/replay tests passed in 4.455 s |
 | 5 | Pending | Batch base-OT integration, no extension |
 | 6 | Pending | Global groups and bit codec |
 | 7 | Pending | Position-based GDFA and real OT |
