@@ -11,7 +11,7 @@ Latest scope: base OT only. No OT extension or OT-specific preprocessing optimiz
 | 3 | Complete | NP Protocol 3.1 base OT over native Edwards25519. Base OT + wire suites: 8 tests in 0.226 s, two processes, invalid points, equal-key branch separation and replay |
 | 4 | Complete | All 256 choices with fresh real base OT, four-ciphertext XOR regression, malformed tables and cross-session/replay tests passed in 4.455 s |
 | 5 | Complete | Two-process whole/split batches agree, wire byte counters agree, 8n base transfers measured, extension names rejected. 2 tests in 0.559 s |
-| 6 | Pending | Global groups and bit codec |
+| 6 | Complete | Exhaustive short-word grouping/search checks, six state-index widths, tail/alignment/resource/permutation cases. 3 tests in 0.002 s |
 | 7 | Pending | Position-based GDFA and real OT |
 | 8 | Pending | Streaming offline GDFA |
 | 9 | Pending | EasyList parser, context and reference |
