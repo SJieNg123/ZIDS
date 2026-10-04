@@ -72,7 +72,7 @@ class Channel:
         self.metrics.sent_bytes += len(data)
         self.metrics.sent_frames += 1
 
-    def receive(self, kind: Kind, context: OTContext, *, size=None):
+    def receive(self, kind: Kind, context: OTContext, *, size=None, max_size=None):
         key = (context.session, context.batch, kind)
         if key in self._received:
             raise ProtocolError("duplicate incoming frame")
@@ -80,7 +80,7 @@ class Channel:
         magic, got_kind, session, batch, length = HEADER.unpack(self._read(HEADER.size))
         if (magic, got_kind, session, batch) != (MAGIC, kind, context.session, context.batch):
             raise ProtocolError("wrong version, role, session or batch")
-        if length > self.max_frame or (size is not None and length != size):
+        if length > self.max_frame or (size is not None and length != size) or (max_size is not None and length > max_size):
             raise ProtocolError("invalid frame length")
         payload = self._read(length)
         self.metrics.received_frames += 1

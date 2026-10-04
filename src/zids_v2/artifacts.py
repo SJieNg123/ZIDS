@@ -104,18 +104,20 @@ def prepare(dfa, n, destination, *, provenance=None, limits=None):
     write_json(public/'manifest.json', manifest)
     write_json(private/'manifest.json', {'public':manifest, 'provenance':provenance or {},
                'ot_bytes':p.n*256*p.bundle_bytes, 'ot_sha256':ot_hash.hexdigest()})
+    from .lifecycle import initialize
+    initialize(root, manifest['session'])
     return manifest
 
 
 def private_tables(directory, *, verify=True):
     private = Path(directory)
     manifest = read_json(private/'manifest.json', limit=1024*1024)
-    if set(manifest) != {'public', 'provenance', 'ot_bytes', 'ot_sha256'}:
+    if type(manifest) is not dict or set(manifest) != {'public', 'provenance', 'ot_bytes', 'ot_sha256'}:
         raise ProtocolError('invalid private manifest')
     p = validate_public(manifest['public'])
     path = private/'ot_messages.bin'
     expected = p.n*256*p.bundle_bytes
-    if manifest['ot_bytes'] != expected or path.stat().st_size != expected:
+    if type(manifest['ot_bytes']) is not int or manifest['ot_bytes'] != expected or path.stat().st_size != expected:
         raise ProtocolError('private OT file length mismatch')
     if verify and digest_file(path) != manifest['ot_sha256']:
         raise ProtocolError('private OT file digest mismatch')
@@ -139,7 +141,11 @@ class MatrixReader:
         if digest_file(path) != self.manifest['matrix_sha256']:
             raise ProtocolError('matrix digest mismatch')
         self._file = open(path, 'rb')
-        self._map = mmap.mmap(self._file.fileno(), 0, access=mmap.ACCESS_READ)
+        try:
+            self._map = mmap.mmap(self._file.fileno(), 0, access=mmap.ACCESS_READ)
+        except BaseException:
+            self._file.close()
+            raise
 
     def cell(self, position, state):
         p = self.params

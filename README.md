@@ -1,3 +1,21 @@
+# ZIDS v2: EasyList and base OT
+
+The supported implementation is `src/zids_v2`. It compiles the declared EasyList
+network profile into one policy DFA, prepares the paper-style GDFA, and evaluates
+it with real Naor-Pinkas base OT in separate server and client processes.
+OT extension and browser execution are excluded.
+
+Follow [the runnable Windows and Bash guide](docs/RUN_V2.md).
+See [implementation status](docs/IMPLEMENTATION_STATUS.md) and
+[protocol and leakage contract](docs/protocol_spec.md) for validated scope.
+Full-snapshot parser coverage does not establish full-snapshot compilation capacity.
+
+The historical commands below use legacy code and do not implement the supported
+v2 protocol. In particular, the shared-master chooser must not be used for private
+evaluation. Existing legacy code and local changes are retained for comparison.
+
+---
+
 ## Project Structure
 ```
 ZIDS/
