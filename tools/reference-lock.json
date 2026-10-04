@@ -1,0 +1,6 @@
+{
+  "repository": "https://github.com/adblockplus/adblockpluscore",
+  "commit": "5073eaf111cc3c46343046e6371371a9d0e8b9df",
+  "archive_sha256": "bf1d82cdf3854fbb6071e9a1cdb9a0f0bd144ded7ff5071e78e945a12f174b82",
+  "profile": "abp-core-0.11.1-network-v1"
+}

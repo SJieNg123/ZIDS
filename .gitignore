@@ -4,3 +4,5 @@ __pycache__/
 .pytest_cache/
 v2-runs/
 node_modules/
+.reference/
+.venv/

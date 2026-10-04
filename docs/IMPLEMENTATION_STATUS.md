@@ -14,7 +14,7 @@ Latest scope: base OT only. No OT extension or OT-specific preprocessing optimiz
 | 6 | Complete | Exhaustive short-word grouping/search checks, six state-index widths, tail/alignment/resource/permutation cases. 3 tests in 0.002 s |
 | 7 | Complete | Sparse position matrix, fresh keys/permutations/pad chains and final-only evaluation. Exhaustive ideal-selection tests plus real OT in two processes, 3 tests in 0.931 s |
 | 8 | Complete | Streaming public matrix/private bundles, canonical manifests, mmap evaluation and hashes. Roundtrip, tampering and bounded-memory checks passed, 3 tests in 0.381 s |
-| 9 | Pending | EasyList parser, context and reference |
+| 9 | Complete | Pinned independent ABP oracle, typed parser, fixed PSL/context codec. 3 semantic test groups passed in 0.130 s. Full snapshot parser coverage: 47,154 supported, 23,813 out of scope, 299 metadata, zero invalid/unsupported |
 | 10 | Pending | Policy DFA compiler |
 | 11 | Pending | Persistent lifecycle and supported CLI |
 | 12 | Pending | Coverage, scale and benchmark |
