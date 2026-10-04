@@ -2,9 +2,10 @@
 from collections import Counter
 from dataclasses import dataclass, asdict
 import hashlib
+import ipaddress
 import re
 
-from .context import RESOURCE_TYPES, REQUEST_TYPES, RequestContext, hostname, third_party
+from .context import RESOURCE_TYPES, REQUEST_TYPES, RequestContext, hostname, third_party, is_ip_address
 from .contracts import ProtocolError
 from .dfa import NOMATCH, BLOCK, ALLOW
 
@@ -29,12 +30,15 @@ class Rule:
     domains: tuple
     third_party: object
     match_case: bool
+    has_domain_includes: bool
 
     @property
     def generic(self):
-        return not any(include for _, include in self.domains)
+        return not self.has_domain_includes
 
     def domain_active(self, domain):
+        if is_ip_address(domain):
+            return dict(self.domains).get(domain,self.generic)
         for suffix, include in sorted(self.domains, key=lambda item: len(item[0]), reverse=True):
             if domain == suffix or domain.endswith('.'+suffix):
                 return include
@@ -75,7 +79,7 @@ def parse_line(raw, source, line):
     match = OPTIONS.search(body)
     pattern = body[:match.start()] if match else body
     options = match[1].split(',') if match else []
-    types, domains, party, case = None, {}, None, False
+    types, domains, party, case, had_include = None, {}, None, False, False
     try:
         for option in options:
             name, equal, value = option.partition('=')
@@ -99,10 +103,13 @@ def parse_line(raw, source, line):
                     case = not negative
             elif name == 'domain' and equal and value and not negative:
                 for item in value.lower().split('|'):
-                    domain = item.lstrip('~').rstrip('.')
-                    if not domain or not re.fullmatch(r'[a-z0-9_.-]+', domain):
+                    domain = item[1:] if item.startswith('~') else item
+                    if domain.startswith('[') and domain.endswith(']'):
+                        ipaddress.IPv6Address(domain[1:-1])
+                    elif not domain or not re.fullmatch(r'[a-z0-9_.-]+', domain):
                         raise ValueError('invalid domain option')
                     domains[domain] = not item.startswith('~')
+                    had_include |= not item.startswith('~')
             else:
                 record.update(status='unsupported', reason='unknown option: '+name)
                 return None, record
@@ -118,7 +125,7 @@ def parse_line(raw, source, line):
             record.update(status='unsupported', reason='non-ASCII rule pattern')
             return None, record
         rule = Rule(identity,source,line,raw,text,pattern,action,tuple(sorted(network_types)),
-                    tuple(domains.items()),party,case)
+                    tuple(domains.items()),party,case,had_include)
         re.compile(rule.regex_source, re.ASCII)
     except (ValueError, re.error) as exc:
         record.update(status='invalid', reason=str(exc))

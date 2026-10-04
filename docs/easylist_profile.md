@@ -19,6 +19,10 @@ separator-or-end, `@@`, match-case, domain inclusion/exclusion and third-party.
 Domain decisions use the most specific matching suffix. A positive domain makes
 the filter specific, while exclusions alone leave it generic. The fixed public
 suffix snapshot determines first/third-party, including private suffix entries.
+Address-shaped IP hostnames use exact domain matches. Numeric suffixes such as
+`0.1` do not constrain `127.0.0.1`. IPv6 domain options are supported. An include
+followed by an exclusion of the same domain still disables the default domain,
+as in the pinned matcher. Trailing dots in filter domain options are preserved.
 
 Explicit request exceptions or any matching document allowlist return ALLOW.
 Otherwise a specific block or an unsuppressed generic block returns BLOCK.
@@ -31,7 +35,8 @@ Unicode hostnames, which are IDNA encoded, and Unicode path/query characters,
 which are UTF-8 percent encoded. Scheme/host are canonicalized and default ports
 removed, while path/query case is preserved. Only absolute http/https/ws/wss
 URLs are accepted. Credentials, backslashes and literal control bytes require
-caller normalization or are rejected. This deliberately defined serialization
+caller normalization or are rejected. Scoped IPv6 and empty hostname labels are
+also rejected. This deliberately defined serialization
 does not implement the entire WHATWG/browser URL parser. The same serialized
 URL is passed to the independent matcher in differential tests.
 

@@ -73,9 +73,9 @@ python tools/check_v2_crypto.py
 python -m unittest discover -s tests_v2 -v
 ```
 
-On Windows Python 3.12, the step 11 lifecycle, CLI, artifact and wire tests passed
-12 tests in 7.488 seconds. The full suite timing and scale results are recorded
-in the final benchmark report. Linux commands are provided, but Linux execution
+On Windows Python 3.12, the final suite passed 40 tests in 50.466 seconds. See
+[BENCHMARK_V2.md](BENCHMARK_V2.md) for measured capacity, timings and remaining
+large-profile limits. Linux commands and CI are provided, but Linux execution
 has not yet been verified in this workspace.
 
 Protocol details are in [protocol_spec.md](protocol_spec.md),

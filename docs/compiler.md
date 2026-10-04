@@ -18,6 +18,13 @@ specific blocking wins, otherwise generic blocking wins unless disabled by a
 document exception. Output-preserving Moore refinement keeps the three labels
 distinct. It does not merge BLOCK and ALLOW into a common accepting partition.
 
+Rules with identical context conditions and action share a regex-prefix trie.
+Context guards remain separate, while matched URL suffixes are shared by policy
+flag and frame kind. Once such a suffix is active, earlier URL alternatives with
+the same effect cannot change its output and are removed from the subset. Literal
+trie edges use a single new state. These transformations preserve policy effects
+without retaining the identity of a matched rule.
+
 Compiler bounds default to 100,000 NFA states, 20,000 DFA states and 120 seconds
 for whole-policy construction, determinization and minimization. Regex feature
 validation runs separately before whole-policy construction. Exceeding a bound
@@ -25,8 +32,8 @@ is an error, never rule pruning or a plaintext fallback. These are algorithmic
 bounds, not a promise of a fixed process RSS. Python 3.12's regex parser is an
 explicit implementation dependency. Runtime matching does not use it.
 
-Tests compare the independent ABP reference against 768 context combinations and
-160 regex/domain combinations. Three fresh GDFA evaluations using actual NP base
+Tests compare the independent ABP reference against 192 context combinations and
+80 regex/domain combinations. Three fresh GDFA evaluations using actual NP base
 OT check BLOCK, ALLOW and NOMATCH against that reference and the plaintext DFA.
 Protocol role separation is additionally tested in independent processes.
 

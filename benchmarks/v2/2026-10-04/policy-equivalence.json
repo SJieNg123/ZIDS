@@ -1,0 +1,85 @@
+{
+  "policies": [
+    {
+      "current_compile": {
+        "alphabet_classes": 22,
+        "cmax": 16,
+        "compile_seconds": 0.00730519974604249,
+        "construction_seconds": 0.00031739985570311546,
+        "determinize_seconds": 0.00441609974950552,
+        "groups": 33,
+        "minimize_seconds": 0.0025715003721415997,
+        "nfa_states": 142,
+        "outmax": 5,
+        "q": 27,
+        "raw_q": 63
+      },
+      "current_dfa_sha256": "1a6cdd89b7f5fe1fac2bf21984f0d6258ce616800a789da90b7d59283f642378",
+      "current_q": 27,
+      "isomorphic": true,
+      "measured_dfa_sha256": "1a6cdd89b7f5fe1fac2bf21984f0d6258ce616800a789da90b7d59283f642378",
+      "measured_q": 27,
+      "name": "synthetic",
+      "secure_sample_inputs_valid": true
+    },
+    {
+      "current_compile": {
+        "alphabet_classes": 37,
+        "cmax": 29,
+        "compile_seconds": 0.014559899922460318,
+        "construction_seconds": 0.001223200000822544,
+        "determinize_seconds": 0.007464199792593718,
+        "groups": 57,
+        "minimize_seconds": 0.005872299894690514,
+        "nfa_states": 204,
+        "outmax": 7,
+        "q": 48,
+        "raw_q": 97
+      },
+      "current_dfa_sha256": "c9cfee6d9541506e549b97497bab375ad25d9218d85fc730e729ccfaa38e35f4",
+      "current_q": 48,
+      "isomorphic": true,
+      "measured_dfa_sha256": "c9cfee6d9541506e549b97497bab375ad25d9218d85fc730e729ccfaa38e35f4",
+      "measured_q": 48,
+      "name": "small",
+      "secure_sample_inputs_valid": true
+    },
+    {
+      "current_compile": {
+        "alphabet_classes": 83,
+        "cmax": 162,
+        "compile_seconds": 1.6836116998456419,
+        "construction_seconds": 0.07495939964428544,
+        "determinize_seconds": 0.7469954001717269,
+        "groups": 238,
+        "minimize_seconds": 0.8616567002609372,
+        "nfa_states": 2604,
+        "outmax": 38,
+        "q": 1475,
+        "raw_q": 5246
+      },
+      "current_dfa_sha256": "84cff04ab708c929082a03893566cb1bef5138f708f6277627be4f0c61b5b17c",
+      "current_q": 1475,
+      "isomorphic": true,
+      "measured_dfa_sha256": "84cff04ab708c929082a03893566cb1bef5138f708f6277627be4f0c61b5b17c",
+      "measured_q": 1475,
+      "name": "context200",
+      "secure_sample_inputs_valid": true
+    }
+  ],
+  "protocol_files_unchanged": {
+    "__init__": true,
+    "artifacts": true,
+    "base_ot": true,
+    "batch_ot": true,
+    "codec": true,
+    "contracts": true,
+    "crypto": true,
+    "dfa": true,
+    "gdfa": true,
+    "lifecycle": true,
+    "ot256": true,
+    "protocol": true,
+    "wire": true
+  }
+}

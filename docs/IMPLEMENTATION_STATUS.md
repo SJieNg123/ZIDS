@@ -15,8 +15,13 @@ Latest scope: base OT only. No OT extension or OT-specific preprocessing optimiz
 | 7 | Complete | Sparse position matrix, fresh keys/permutations/pad chains and final-only evaluation. Exhaustive ideal-selection tests plus real OT in two processes, 3 tests in 0.931 s |
 | 8 | Complete | Streaming public matrix/private bundles, canonical manifests, mmap evaluation and hashes. Roundtrip, tampering and bounded-memory checks passed, 3 tests in 0.381 s |
 | 9 | Complete | Pinned independent ABP oracle, typed parser, fixed PSL/context codec. 3 semantic test groups passed in 0.130 s. Full snapshot parser coverage: 47,154 supported, 23,813 out of scope, 299 metadata, zero invalid/unsupported |
-| 10 | Complete | One total byte policy DFA, output-preserving minimization and fail-closed bounds. 4 test groups passed in 34.599 s, including 928 oracle cases and three real base-OT/GDFA decisions. Full snapshot regex feature coverage has zero failures |
+| 10 | Complete | One total byte policy DFA, output-preserving minimization and fail-closed bounds. 4 test groups passed in 34.599 s, including 272 oracle/DFA cases and three real base-OT/GDFA decisions. Full snapshot regex feature coverage has zero failures |
 | 11 | Complete | SQLite atomic reservation, fail-closed crash/disconnect handling, manifest binding and supported CLI. 12 lifecycle/CLI/artifact/wire tests passed in 7.488 s, including independent server/client processes and concurrent claimants. Remote mode requires mutual TLS 1.3 |
-| 12 | Pending | Coverage, scale and benchmark |
+| 12 | Implemented, full-scale acceptance incomplete | Final 40 tests passed in 50.466 s. Frozen 200-rule fixture has 406 oracle/DFA agreements and three fresh private decisions. Full parser/regex coverage passes. Expanded 2,000-rule and full-snapshot compilation still exceed bounds. See `docs/BENCHMARK_V2.md` and committed raw records |
 
 Existing dirty legacy code, configurations, datasets and large artifacts are preserved and excluded from step commits. New code uses `src/zids_v2/`, tests use `tests_v2/`, runtime artifacts use ignored `v2-runs/`.
+
+Completed step commits: 1 `64a2a92`, 2 `251f983`, 3 `8a6bb16`, 4 `f034c0e`,
+5 `de0acb5`, 6 `e764bd7`, 7 `1f3c608`, 8 `7982ea9`, 9 `a4cb70a`,
+10 `c8fce3b`, 11 `49b5044`. Step 12's implementation and measurements are committed
+separately, with large-scale acceptance explicitly remaining open.

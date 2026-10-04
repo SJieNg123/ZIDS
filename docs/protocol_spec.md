@@ -4,7 +4,7 @@ Scope: EasyList network matching through the sparse ODFA in ZIDS §5.4, using ba
 
 ## Boundaries
 
-Server input is a total byte-alphabet DFA with a final output function. Client input is a nonempty byte string X. EasyList maps caller-supplied request context to X and rules to this DFA. Public parameters are version, suite, n, Q, outmax, cmax, k and a fixed output alphabet. Rule sources, rule hashes, transition tables, group membership, permutations, keys and pads are server-private. Only the final ALLOW/BLOCK/NOMATCH is returned locally to the client. No intermediate result or decode failure is sent to the server.
+Server input is a total byte-alphabet DFA with a final output function. Client input is a nonempty byte string X. EasyList maps caller-supplied request context to X and rules to this DFA. Public parameters are version, suite, n, Q, outmax, cmax, k and a fixed output alphabet, with bounded public metadata. Rule sources, rule hashes, transition tables, group membership, permutations, keys and pads are server-private. Only the final ALLOW/BLOCK/NOMATCH is returned locally to the client. No intermediate result or decode failure is sent to the server.
 
 Client input validity and authenticity as browser traffic are not guaranteed. A malicious server can choose a wrong policy or corrupt its ciphertexts. The ZIDS theorem protects privacy against such a server, not correctness of its policy. This implementation targets static corruptions and authenticated peer transport, with no UC or arbitrary concurrent-composition claim.
 
@@ -22,7 +22,7 @@ The client starts with pi_0(q0) and its pad. At each position it opens exactly o
 
 ## Wire and lifecycle
 
-Use versioned length-prefixed binary frames with a fixed-size header containing message kind, opaque 128-bit session ID, monotonically ordered batch ID and payload length. Reject unknown kinds, versions, excess lengths, truncation, duplicate/reordered batches and extra bytes. Raw OT choices, DFA state indices and rules are not wire fields. Public dimensions determine all message counts and sizes.
+Use versioned length-prefixed binary frames with a fixed-size header containing message kind, opaque 128-bit session ID, ordered batch ID and payload length. Reject unknown kinds, versions, excess lengths, truncation, duplicate/reordered batches and unexpected bytes inside framed payloads. Raw OT choices, DFA state indices and rules are not wire fields. Public dimensions determine matrix and OT message counts and sizes. The bounded JSON bootstrap also serializes the already-public initial state, so its byte length can vary slightly between sessions. Connections close after the scheduled OT messages, without accepting another evaluation.
 
 For each base-OT batch the message schedule is sender setup, receiver query, sender response. Batching does not change the number of public-key bit transfers. The final receiver result and any decoding error are local only. Whole public artifacts are prefetched, never fetched according to a DFA path.
 

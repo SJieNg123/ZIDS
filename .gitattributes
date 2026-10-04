@@ -1,0 +1,6 @@
+/src/zids_v2/** text eol=lf
+/tests_v2/** text eol=lf
+/tools/benchmark_v2.py text eol=lf
+/tools/verify_benchmark_policies.py text eol=lf
+/benchmarks/v2/**/*.json text eol=lf
+/benchmarks/v2/**/*.zip -text

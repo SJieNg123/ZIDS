@@ -1,0 +1,25 @@
+{
+  "full_scale_acceptance": "incomplete",
+  "linux_runtime": "not verified",
+  "native_group_check": "passed",
+  "oracle_dfa_case_counts": {
+    "context": 192,
+    "context200": 406,
+    "domain_option_history": 20,
+    "ip_idna_party": 33,
+    "regex_domain": 80,
+    "shared_patterns": 127
+  },
+  "oracle_dfa_comparisons": 858,
+  "ot_extension": false,
+  "pip_check": "passed",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "pynacl": "1.6.2",
+  "python": "3.12.0",
+  "unit_tests": {
+    "command": "python -B -X utf8 -m unittest discover -s tests_v2 -v",
+    "count": 40,
+    "result": "passed",
+    "seconds": 50.466
+  }
+}

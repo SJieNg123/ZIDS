@@ -1,0 +1,915 @@
+{
+  "browser_execution": false,
+  "extension": false,
+  "implementation_sha256": {
+    "src/zids_v2/__init__.py": "2887470253d603a9e0a3253eb5645574c715354fcd425930275fea7af9869a9a",
+    "src/zids_v2/__main__.py": "e19c098d60ee91e5b09d7c4dc54ba490964e292b32d42c470f62480b8635a4fc",
+    "src/zids_v2/artifacts.py": "04f78b0908c684b162706707b1a0500b5fd163b7142bc2a915e9cb9dba5b09fa",
+    "src/zids_v2/automata.py": "2b7f07da58c6a46244321448c88bf708becebc50d5b84f71ae5abb7a1384b9e6",
+    "src/zids_v2/base_ot.py": "f155b061c9a3f3e080745fbaae874b4950aaac3ab0aa123453e6e57f18d7f598",
+    "src/zids_v2/batch_ot.py": "dd9bf9fc77a6dfbdb92c6e1fbf05b372064feb7da42b5cc8315b3f5a694caf9c",
+    "src/zids_v2/codec.py": "e8ab3ba50ab8b22b1fdce9da44c8911bd67b9009c3a5439309d90108b433a6dc",
+    "src/zids_v2/compiler.py": "37d5a9b7526bb2dd3e5bb25d97fc153d7e8cdd47b0f4e1e1130c603793872c5b",
+    "src/zids_v2/context.py": "21dab70bad7208ee1c66813de5ebea35c7e561f7d5d3fbc0feecbe14d7215923",
+    "src/zids_v2/contracts.py": "19c8e20882862e36f1d0f19619804bce4e8ab0e0bb217b646ca31ede715e17b0",
+    "src/zids_v2/crypto.py": "d8352aa8b1a7b69ad2111353bbeeda55c75bb9d211354e9202c180bc1f1de1c3",
+    "src/zids_v2/dfa.py": "5c7bd342e9d6a102c62835d7e09cc416295a9aa11692cc3581944952ff8c24cc",
+    "src/zids_v2/easylist.py": "45288804336007f95a39816720b063c523ec358723995d4a216819ff9998aa6d",
+    "src/zids_v2/gdfa.py": "909defbb87617f6ac5ed684b40836fd4fa21c047332f2da67631fae8684e1798",
+    "src/zids_v2/lifecycle.py": "5aa73dc2b1a4a715b7301350af1f4301aa17934ba79356429685550d34e60419",
+    "src/zids_v2/measure.py": "21ee83cb86f27a9f603f653af41b7c60c7b1523ad5f0c854a067b0c11e07f301",
+    "src/zids_v2/ot256.py": "7ed6bd9f4d6faf9f3764a98e3759f79a4d590b8003ef78431092541f39a98ced",
+    "src/zids_v2/protocol.py": "161b1685395821175005f48a0a9d8929edff030fa82e0c79ab00f2555d73b3f2",
+    "src/zids_v2/wire.py": "69803ea3fb07f70b0cc7bd96f950f7fb0983fef815d2584ed0dc2a73c27d4ba2"
+  },
+  "measurement": "fresh spawned workers, wall clock, process CPU and OS peak RSS",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "python": "3.12.0 (tags/v3.12.0:0fb18b0, Oct  2 2023, 13:03:39) [MSC v.1935 64 bit (AMD64)]",
+  "reference": {
+    "archive_sha256": "bf1d82cdf3854fbb6071e9a1cdb9a0f0bd144ded7ff5071e78e945a12f174b82",
+    "commit": "5073eaf111cc3c46343046e6371371a9d0e8b9df",
+    "profile": "abp-core-0.11.1-network-v1",
+    "repository": "https://github.com/adblockplus/adblockpluscore"
+  },
+  "scales": [
+    {
+      "compile": {
+        "cpu_seconds": 0.015625,
+        "peak_rss_bytes": 25751552,
+        "result": {
+          "compiler": "policy-dfa-v1",
+          "coverage_counts": {
+            "supported": 2
+          },
+          "profile": "abp-core-0.11.1-network-v1",
+          "sources": [
+            {
+              "name": "rules.abp",
+              "sha256": "650946b62e7492732f1a5e62b9187d10e96f7f0fbf8620c7de22e241b44bb07c"
+            }
+          ],
+          "stats": {
+            "alphabet_classes": 22,
+            "cmax": 16,
+            "compile_seconds": 0.007536000106483698,
+            "construction_seconds": 0.000781599897891283,
+            "determinize_seconds": 0.004233899991959333,
+            "groups": 33,
+            "minimize_seconds": 0.0025204000994563103,
+            "nfa_states": 137,
+            "outmax": 5,
+            "q": 27,
+            "raw_q": 63
+          }
+        },
+        "status": "ok",
+        "wall_seconds": 0.0127874999307096
+      },
+      "coverage": {
+        "supported": 2
+      },
+      "dfa_mismatches": 0,
+      "largest_input_forecast": {
+        "base_transfers": 328,
+        "gdfa_bytes": 181548,
+        "ot_plain_bundle_bytes": 5541888,
+        "server_row_bytes": 4428
+      },
+      "name": "synthetic",
+      "network_rules": 2,
+      "reference_cases": 3,
+      "reference_seconds": 0.05235629994422197,
+      "regex_failures": 0,
+      "resource_check": "ok",
+      "secure": [
+        {
+          "client": {
+            "cpu_seconds": 0.140625,
+            "peak_rss_bytes": 32165888,
+            "result": {
+              "decision": 1,
+              "decode_seconds": 0.0025909999385476112,
+              "metrics": {
+                "base_transfers": 312,
+                "received_bytes": 5465515,
+                "received_frames": 11,
+                "scalar_multiplications": 624,
+                "sent_bytes": 10107,
+                "sent_frames": 3
+              },
+              "n": 39,
+              "online_seconds": 4.974950300063938,
+              "ot_seconds": 4.953907799907029,
+              "prefetch_seconds": 0.018450899980962276,
+              "session": "55652c3130dceb3ed87864306e8f74c8"
+            },
+            "status": "ok",
+            "wall_seconds": 4.979039199650288
+          },
+          "disk_bytes": 5631570,
+          "expected": 1,
+          "fresh_request_wall_seconds": 5.583787700161338,
+          "n": 39,
+          "prepare": {
+            "cpu_seconds": 0.234375,
+            "peak_rss_bytes": 159227904,
+            "result": {
+              "params": {
+                "cmax": 16,
+                "k": 128,
+                "n": 39,
+                "outmax": 5,
+                "q": 27
+              },
+              "session": "55652c3130dceb3ed87864306e8f74c8"
+            },
+            "status": "ok",
+            "wall_seconds": 0.23992939991876483
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://b/",
+            "resource_type": "image",
+            "url": "https://a/ad"
+          },
+          "server": {
+            "cpu_seconds": 4.828125,
+            "peak_rss_bytes": 37167104,
+            "result": {
+              "metrics": {
+                "base_transfers": 312,
+                "received_bytes": 10107,
+                "received_frames": 3,
+                "scalar_multiplications": 321,
+                "sent_bytes": 5465515,
+                "sent_frames": 11
+              },
+              "online_seconds": 4.9592217998579144,
+              "ot_seconds": 4.944052500184625,
+              "prefetch_seconds": 0.01516929967328906,
+              "session": "55652c3130dceb3ed87864306e8f74c8"
+            },
+            "status": "ok",
+            "wall_seconds": 5.0799420000985265
+          },
+          "status": "ok"
+        },
+        {
+          "client": {
+            "cpu_seconds": 0.125,
+            "peak_rss_bytes": 32378880,
+            "result": {
+              "decision": 2,
+              "decode_seconds": 0.0028222003020346165,
+              "metrics": {
+                "base_transfers": 328,
+                "received_bytes": 5745730,
+                "received_frames": 11,
+                "scalar_multiplications": 656,
+                "sent_bytes": 10619,
+                "sent_frames": 3
+              },
+              "n": 41,
+              "online_seconds": 5.28995760018006,
+              "ot_seconds": 5.273218599613756,
+              "prefetch_seconds": 0.013916500378400087,
+              "session": "2dd42c6645c1a14559d8dc16327110ec"
+            },
+            "status": "ok",
+            "wall_seconds": 5.2939325999468565
+          },
+          "disk_bytes": 5919614,
+          "expected": 2,
+          "fresh_request_wall_seconds": 5.932541400194168,
+          "n": 41,
+          "prepare": {
+            "cpu_seconds": 0.265625,
+            "peak_rss_bytes": 158445568,
+            "result": {
+              "params": {
+                "cmax": 16,
+                "k": 128,
+                "n": 41,
+                "outmax": 5,
+                "q": 27
+              },
+              "session": "2dd42c6645c1a14559d8dc16327110ec"
+            },
+            "status": "ok",
+            "wall_seconds": 0.26145559968426824
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://b/",
+            "resource_type": "image",
+            "url": "https://a/adok"
+          },
+          "server": {
+            "cpu_seconds": 5.15625,
+            "peak_rss_bytes": 35856384,
+            "result": {
+              "metrics": {
+                "base_transfers": 328,
+                "received_bytes": 10619,
+                "received_frames": 3,
+                "scalar_multiplications": 337,
+                "sent_bytes": 5745730,
+                "sent_frames": 11
+              },
+              "online_seconds": 5.270729499869049,
+              "ot_seconds": 5.258766400162131,
+              "prefetch_seconds": 0.011963099706918001,
+              "session": "2dd42c6645c1a14559d8dc16327110ec"
+            },
+            "status": "ok",
+            "wall_seconds": 5.385060200002044
+          },
+          "status": "ok"
+        },
+        {
+          "client": {
+            "cpu_seconds": 0.109375,
+            "peak_rss_bytes": 32563200,
+            "result": {
+              "decision": 0,
+              "decode_seconds": 0.0025979001075029373,
+              "metrics": {
+                "base_transfers": 312,
+                "received_bytes": 5465514,
+                "received_frames": 11,
+                "scalar_multiplications": 624,
+                "sent_bytes": 10107,
+                "sent_frames": 3
+              },
+              "n": 39,
+              "online_seconds": 5.028738300316036,
+              "ot_seconds": 5.012838599737734,
+              "prefetch_seconds": 0.01330130035057664,
+              "session": "f55b4fc41076e1d35f6430b0ba8cd177"
+            },
+            "status": "ok",
+            "wall_seconds": 5.033291200175881
+          },
+          "disk_bytes": 5631566,
+          "expected": 0,
+          "fresh_request_wall_seconds": 5.623638600111008,
+          "n": 39,
+          "prepare": {
+            "cpu_seconds": 0.234375,
+            "peak_rss_bytes": 159068160,
+            "result": {
+              "params": {
+                "cmax": 16,
+                "k": 128,
+                "n": 39,
+                "outmax": 5,
+                "q": 27
+              },
+              "session": "f55b4fc41076e1d35f6430b0ba8cd177"
+            },
+            "status": "ok",
+            "wall_seconds": 0.2392969997599721
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://b/",
+            "resource_type": "image",
+            "url": "https://a/xx"
+          },
+          "server": {
+            "cpu_seconds": 4.9375,
+            "peak_rss_bytes": 37441536,
+            "result": {
+              "metrics": {
+                "base_transfers": 312,
+                "received_bytes": 10107,
+                "received_frames": 3,
+                "scalar_multiplications": 321,
+                "sent_bytes": 5465514,
+                "sent_frames": 11
+              },
+              "online_seconds": 5.012859500013292,
+              "ot_seconds": 5.002838900312781,
+              "prefetch_seconds": 0.010020599700510502,
+              "session": "f55b4fc41076e1d35f6430b0ba8cd177"
+            },
+            "status": "ok",
+            "wall_seconds": 5.131361200008541
+          },
+          "status": "ok"
+        }
+      ],
+      "source_sha256": "650946b62e7492732f1a5e62b9187d10e96f7f0fbf8620c7de22e241b44bb07c",
+      "status": "ok",
+      "verdict_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1
+      }
+    },
+    {
+      "compile": {
+        "cpu_seconds": 0.015625,
+        "peak_rss_bytes": 25817088,
+        "result": {
+          "compiler": "policy-dfa-v1",
+          "coverage_counts": {
+            "supported": 2
+          },
+          "profile": "abp-core-0.11.1-network-v1",
+          "sources": [
+            {
+              "name": "rules.abp",
+              "sha256": "434b42557c5101cacc0010857f18e18003db054d494f326723b296312a7480e9"
+            }
+          ],
+          "stats": {
+            "alphabet_classes": 37,
+            "cmax": 29,
+            "compile_seconds": 0.015519099775701761,
+            "construction_seconds": 0.0017438000068068504,
+            "determinize_seconds": 0.007947999984025955,
+            "groups": 57,
+            "minimize_seconds": 0.0058271996676921844,
+            "nfa_states": 209,
+            "outmax": 7,
+            "q": 48,
+            "raw_q": 97
+          }
+        },
+        "status": "ok",
+        "wall_seconds": 0.02274119993671775
+      },
+      "coverage": {
+        "supported": 2
+      },
+      "dfa_mismatches": 0,
+      "largest_input_forecast": {
+        "base_transfers": 712,
+        "gdfa_bytes": 982560,
+        "ot_plain_bundle_bytes": 21804288,
+        "server_row_bytes": 11040
+      },
+      "name": "small",
+      "network_rules": 2,
+      "reference_cases": 3,
+      "reference_seconds": 0.057656200136989355,
+      "regex_failures": 0,
+      "resource_check": "ok",
+      "secure": [
+        {
+          "client": {
+            "cpu_seconds": 0.25,
+            "peak_rss_bytes": 38879232,
+            "result": {
+              "decision": 1,
+              "decode_seconds": 0.007789100054651499,
+              "metrics": {
+                "base_transfers": 616,
+                "received_bytes": 19755757,
+                "received_frames": 17,
+                "scalar_multiplications": 1232,
+                "sent_bytes": 19917,
+                "sent_frames": 5
+              },
+              "n": 77,
+              "online_seconds": 16.702442900277674,
+              "ot_seconds": 16.668373900000006,
+              "prefetch_seconds": 0.02627950021997094,
+              "session": "2a6942fb615226524c5d748260151aa3"
+            },
+            "status": "ok",
+            "wall_seconds": 16.707303800154477
+          },
+          "disk_bytes": 20579180,
+          "expected": 1,
+          "fresh_request_wall_seconds": 17.860565500333905,
+          "n": 77,
+          "prepare": {
+            "cpu_seconds": 0.78125,
+            "peak_rss_bytes": 158683136,
+            "result": {
+              "params": {
+                "cmax": 29,
+                "k": 128,
+                "n": 77,
+                "outmax": 7,
+                "q": 48
+              },
+              "session": "2a6942fb615226524c5d748260151aa3"
+            },
+            "status": "ok",
+            "wall_seconds": 0.7940143002197146
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://site.example/",
+            "resource_type": "image",
+            "url": "https://0cf.io/ad"
+          },
+          "server": {
+            "cpu_seconds": 16.375,
+            "peak_rss_bytes": 45871104,
+            "result": {
+              "metrics": {
+                "base_transfers": 616,
+                "received_bytes": 19917,
+                "received_frames": 5,
+                "scalar_multiplications": 631,
+                "sent_bytes": 19755757,
+                "sent_frames": 17
+              },
+              "online_seconds": 16.663050999864936,
+              "ot_seconds": 16.640539899934083,
+              "prefetch_seconds": 0.02251109993085265,
+              "session": "2a6942fb615226524c5d748260151aa3"
+            },
+            "status": "ok",
+            "wall_seconds": 16.78798949997872
+          },
+          "status": "ok"
+        },
+        {
+          "client": {
+            "cpu_seconds": 0.28125,
+            "peak_rss_bytes": 38055936,
+            "result": {
+              "decision": 2,
+              "decode_seconds": 0.0077043999917805195,
+              "metrics": {
+                "base_transfers": 616,
+                "received_bytes": 19755757,
+                "received_frames": 17,
+                "scalar_multiplications": 1232,
+                "sent_bytes": 19917,
+                "sent_frames": 5
+              },
+              "n": 77,
+              "online_seconds": 16.68989559961483,
+              "ot_seconds": 16.667252199724317,
+              "prefetch_seconds": 0.014938700012862682,
+              "session": "a8a343e16816616ba048c91f21f5937f"
+            },
+            "status": "ok",
+            "wall_seconds": 16.6939074001275
+          },
+          "disk_bytes": 20579180,
+          "expected": 2,
+          "fresh_request_wall_seconds": 17.876761899795383,
+          "n": 77,
+          "prepare": {
+            "cpu_seconds": 0.78125,
+            "peak_rss_bytes": 158412800,
+            "result": {
+              "params": {
+                "cmax": 29,
+                "k": 128,
+                "n": 77,
+                "outmax": 7,
+                "q": 48
+              },
+              "session": "a8a343e16816616ba048c91f21f5937f"
+            },
+            "status": "ok",
+            "wall_seconds": 0.7947098002769053
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://site.example/",
+            "resource_type": "image",
+            "url": "https://adv.gg/ok"
+          },
+          "server": {
+            "cpu_seconds": 16.359375,
+            "peak_rss_bytes": 46055424,
+            "result": {
+              "metrics": {
+                "base_transfers": 616,
+                "received_bytes": 19917,
+                "received_frames": 5,
+                "scalar_multiplications": 631,
+                "sent_bytes": 19755757,
+                "sent_frames": 17
+              },
+              "online_seconds": 16.6524879001081,
+              "ot_seconds": 16.64148240024224,
+              "prefetch_seconds": 0.011005499865859747,
+              "session": "a8a343e16816616ba048c91f21f5937f"
+            },
+            "status": "ok",
+            "wall_seconds": 16.77616070024669
+          },
+          "status": "ok"
+        },
+        {
+          "client": {
+            "cpu_seconds": 0.296875,
+            "peak_rss_bytes": 38535168,
+            "result": {
+              "decision": 0,
+              "decode_seconds": 0.00909249996766448,
+              "metrics": {
+                "base_transfers": 712,
+                "received_bytes": 22834568,
+                "received_frames": 20,
+                "scalar_multiplications": 1424,
+                "sent_bytes": 23030,
+                "sent_frames": 6
+              },
+              "n": 89,
+              "online_seconds": 19.360523999668658,
+              "ot_seconds": 19.332164799794555,
+              "prefetch_seconds": 0.019266400020569563,
+              "session": "0241ceba20fb37ed6631954766d11696"
+            },
+            "status": "ok",
+            "wall_seconds": 19.36480479966849
+          },
+          "disk_bytes": 23784044,
+          "expected": 0,
+          "fresh_request_wall_seconds": 20.625852899625897,
+          "n": 89,
+          "prepare": {
+            "cpu_seconds": 0.859375,
+            "peak_rss_bytes": 158584832,
+            "result": {
+              "params": {
+                "cmax": 29,
+                "k": 128,
+                "n": 89,
+                "outmax": 7,
+                "q": 48
+              },
+              "session": "0241ceba20fb37ed6631954766d11696"
+            },
+            "status": "ok",
+            "wall_seconds": 0.888073599897325
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://site.example/",
+            "resource_type": "image",
+            "url": "https://clean.invalid/control"
+          },
+          "server": {
+            "cpu_seconds": 18.859375,
+            "peak_rss_bytes": 45023232,
+            "result": {
+              "metrics": {
+                "base_transfers": 712,
+                "received_bytes": 23030,
+                "received_frames": 6,
+                "scalar_multiplications": 730,
+                "sent_bytes": 22834568,
+                "sent_frames": 20
+              },
+              "online_seconds": 19.33076719986275,
+              "ot_seconds": 19.314988899976015,
+              "prefetch_seconds": 0.015778299886733294,
+              "session": "0241ceba20fb37ed6631954766d11696"
+            },
+            "status": "ok",
+            "wall_seconds": 19.45578739978373
+          },
+          "status": "ok"
+        }
+      ],
+      "source_sha256": "434b42557c5101cacc0010857f18e18003db054d494f326723b296312a7480e9",
+      "status": "ok",
+      "verdict_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1
+      }
+    },
+    {
+      "compile": {
+        "cpu_seconds": 2.0625,
+        "peak_rss_bytes": 50192384,
+        "result": {
+          "compiler": "policy-dfa-v1",
+          "coverage_counts": {
+            "supported": 200
+          },
+          "profile": "abp-core-0.11.1-network-v1",
+          "sources": [
+            {
+              "name": "rules.abp",
+              "sha256": "8957363471b409a1d62903b5246a15a130dfecc598c8a1ae14539d796e291469"
+            }
+          ],
+          "stats": {
+            "alphabet_classes": 83,
+            "cmax": 162,
+            "compile_seconds": 1.9735830998979509,
+            "construction_seconds": 0.07927139988169074,
+            "determinize_seconds": 1.0343232001177967,
+            "groups": 238,
+            "minimize_seconds": 0.8599883997812867,
+            "nfa_states": 3866,
+            "outmax": 38,
+            "q": 1475,
+            "raw_q": 5246
+          }
+        },
+        "status": "ok",
+        "wall_seconds": 2.0807171002961695
+      },
+      "coverage": {
+        "supported": 200
+      },
+      "dfa_mismatches": 0,
+      "largest_input_forecast": {
+        "base_transfers": 896,
+        "gdfa_bytes": 209638800,
+        "ot_plain_bundle_bytes": 157925376,
+        "server_row_bytes": 1871775
+      },
+      "name": "context200",
+      "network_rules": 200,
+      "reference_cases": 406,
+      "reference_seconds": 0.06123160012066364,
+      "regex_failures": 0,
+      "resource_check": "ok",
+      "secure": [
+        {
+          "client": {
+            "cpu_seconds": 1.171875,
+            "peak_rss_bytes": 94691328,
+            "result": {
+              "decision": 1,
+              "decode_seconds": 0.13720929995179176,
+              "metrics": {
+                "base_transfers": 632,
+                "received_bytes": 259312123,
+                "received_frames": 158,
+                "scalar_multiplications": 1264,
+                "sent_bytes": 20429,
+                "sent_frames": 5
+              },
+              "n": 79,
+              "online_seconds": 94.46541219996288,
+              "ot_seconds": 93.77542540011927,
+              "prefetch_seconds": 0.552777299657464,
+              "session": "3981b859cf854788cabde23ca1f16d7b"
+            },
+            "status": "ok",
+            "wall_seconds": 94.4693534001708
+          },
+          "disk_bytes": 407148912,
+          "expected": 1,
+          "fresh_request_wall_seconds": 122.03986669983715,
+          "n": 79,
+          "prepare": {
+            "cpu_seconds": 26.5625,
+            "peak_rss_bytes": 158859264,
+            "result": {
+              "params": {
+                "cmax": 162,
+                "k": 128,
+                "n": 79,
+                "outmax": 38,
+                "q": 1475
+              },
+              "session": "3981b859cf854788cabde23ca1f16d7b"
+            },
+            "status": "ok",
+            "wall_seconds": 27.201549000106752
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://site.example/",
+            "resource_type": "image",
+            "url": "https://0cdn.xyz/ad"
+          },
+          "server": {
+            "cpu_seconds": 92.359375,
+            "peak_rss_bytes": 123310080,
+            "result": {
+              "metrics": {
+                "base_transfers": 632,
+                "received_bytes": 20429,
+                "received_frames": 5,
+                "scalar_multiplications": 647,
+                "sent_bytes": 259312123,
+                "sent_frames": 158
+              },
+              "online_seconds": 94.18841109983623,
+              "ot_seconds": 93.82292099995539,
+              "prefetch_seconds": 0.36549009988084435,
+              "session": "3981b859cf854788cabde23ca1f16d7b"
+            },
+            "status": "ok",
+            "wall_seconds": 94.31149590015411
+          },
+          "status": "ok"
+        },
+        {
+          "client": {
+            "cpu_seconds": 2.109375,
+            "peak_rss_bytes": 95207424,
+            "result": {
+              "decision": 2,
+              "decode_seconds": 0.2545448001474142,
+              "metrics": {
+                "base_transfers": 656,
+                "received_bytes": 269159616,
+                "received_frames": 166,
+                "scalar_multiplications": 1312,
+                "sent_bytes": 21238,
+                "sent_frames": 6
+              },
+              "n": 82,
+              "online_seconds": 204.57879470009357,
+              "ot_seconds": 203.7463438999839,
+              "prefetch_seconds": 0.5779057000763714,
+              "session": "5bdae8dd57433938f9f5ce552af9c8b0"
+            },
+            "status": "ok",
+            "wall_seconds": 204.5828753998503
+          },
+          "disk_bytes": 422609706,
+          "expected": 2,
+          "fresh_request_wall_seconds": 233.4232703000307,
+          "n": 82,
+          "prepare": {
+            "cpu_seconds": 27.84375,
+            "peak_rss_bytes": 158539776,
+            "result": {
+              "params": {
+                "cmax": 162,
+                "k": 128,
+                "n": 82,
+                "outmax": 38,
+                "q": 1475
+              },
+              "session": "5bdae8dd57433938f9f5ce552af9c8b0"
+            },
+            "status": "ok",
+            "wall_seconds": 28.475395299959928
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://site.example/",
+            "resource_type": "image",
+            "url": "https://0cdn.xyz/allow"
+          },
+          "server": {
+            "cpu_seconds": 201.890625,
+            "peak_rss_bytes": 123691008,
+            "result": {
+              "metrics": {
+                "base_transfers": 656,
+                "received_bytes": 21238,
+                "received_frames": 6,
+                "scalar_multiplications": 674,
+                "sent_bytes": 269159616,
+                "sent_frames": 166
+              },
+              "online_seconds": 204.29513790039346,
+              "ot_seconds": 203.90992390038446,
+              "prefetch_seconds": 0.3852140000090003,
+              "session": "5bdae8dd57433938f9f5ce552af9c8b0"
+            },
+            "status": "ok",
+            "wall_seconds": 204.40632670000196
+          },
+          "status": "ok"
+        },
+        {
+          "client": {
+            "cpu_seconds": 2.25,
+            "peak_rss_bytes": 94691328,
+            "result": {
+              "decision": 0,
+              "decode_seconds": 0.271038600243628,
+              "metrics": {
+                "base_transfers": 712,
+                "received_bytes": 292136453,
+                "received_frames": 178,
+                "scalar_multiplications": 1424,
+                "sent_bytes": 23030,
+                "sent_frames": 6
+              },
+              "n": 89,
+              "online_seconds": 223.39007900003344,
+              "ot_seconds": 222.49681989988312,
+              "prefetch_seconds": 0.6222200999036431,
+              "session": "e610e4111b12d833806195f56cee8e96"
+            },
+            "status": "ok",
+            "wall_seconds": 223.39406620012596
+          },
+          "disk_bytes": 458684892,
+          "expected": 0,
+          "fresh_request_wall_seconds": 276.4050030000508,
+          "n": 89,
+          "prepare": {
+            "cpu_seconds": 52.25,
+            "peak_rss_bytes": 158449664,
+            "result": {
+              "params": {
+                "cmax": 162,
+                "k": 128,
+                "n": 89,
+                "outmax": 38,
+                "q": 1475
+              },
+              "session": "e610e4111b12d833806195f56cee8e96"
+            },
+            "status": "ok",
+            "wall_seconds": 52.636623699683696
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://site.example/",
+            "resource_type": "image",
+            "url": "https://clean.invalid/control"
+          },
+          "server": {
+            "cpu_seconds": 220.859375,
+            "peak_rss_bytes": 123572224,
+            "result": {
+              "metrics": {
+                "base_transfers": 712,
+                "received_bytes": 23030,
+                "received_frames": 6,
+                "scalar_multiplications": 730,
+                "sent_bytes": 292136453,
+                "sent_frames": 178
+              },
+              "online_seconds": 222.9649362997152,
+              "ot_seconds": 222.53756819991395,
+              "prefetch_seconds": 0.42736809980124235,
+              "session": "e610e4111b12d833806195f56cee8e96"
+            },
+            "status": "ok",
+            "wall_seconds": 223.08480600034818
+          },
+          "status": "ok"
+        }
+      ],
+      "source_sha256": "8957363471b409a1d62903b5246a15a130dfecc598c8a1ae14539d796e291469",
+      "status": "ok",
+      "verdict_counts": {
+        "0": 203,
+        "1": 202,
+        "2": 1
+      }
+    },
+    {
+      "compile": {
+        "cpu_seconds": 67.625,
+        "error": "DFA state limit exceeded",
+        "error_type": "CompileLimit",
+        "peak_rss_bytes": 293449728,
+        "status": "failed",
+        "wall_seconds": 68.12532609980553
+      },
+      "coverage": {
+        "supported": 2000
+      },
+      "name": "profile2000",
+      "network_rules": 2000,
+      "reference_cases": 16,
+      "reference_seconds": 0.06420829985290766,
+      "regex_failures": 0,
+      "source_sha256": "e1fdcb8f165822c71db5b44b99ff0434af0c2b5b9fb02795aa50bc2d570dcfe5",
+      "status": "compile_limit",
+      "verdict_counts": {
+        "0": 14,
+        "1": 2,
+        "2": 0
+      }
+    },
+    {
+      "compile": {
+        "cpu_seconds": 31.75,
+        "error": "regex prefix trie exceeds NFA bound",
+        "error_type": "CompileLimit",
+        "peak_rss_bytes": 189063168,
+        "status": "failed",
+        "wall_seconds": 32.45614010002464
+      },
+      "coverage": {
+        "metadata": 299,
+        "out_of_scope": 23813,
+        "supported": 47154
+      },
+      "name": "full",
+      "network_rules": 47154,
+      "reference_cases": 16,
+      "reference_seconds": 0.15301360003650188,
+      "regex_failures": 0,
+      "source_sha256": "2888c230ef758e3c5c73a867376ed379d12cd2e9d9b94551634fc60dc1a05f34",
+      "status": "compile_limit",
+      "verdict_counts": {
+        "0": 14,
+        "1": 2,
+        "2": 0
+      }
+    }
+  ],
+  "secure_selection": "first three cases per requested successful scale",
+  "suite": "NP-ED25519-SHA256-v1"
+}

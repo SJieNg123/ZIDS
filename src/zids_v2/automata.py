@@ -1,6 +1,6 @@
 """Bounded Thompson construction, byte determinization and output refinement."""
 from functools import lru_cache
-from time import monotonic
+from time import perf_counter
 from re import _parser as parser, _constants as C
 
 from .contracts import ProtocolError
@@ -9,6 +9,7 @@ from .dfa import DFA, NOMATCH, BLOCK, ALLOW
 ALL = (1 << 256)-1
 URL_BYTES = sum(1 << c for c in range(32, 127))
 HOST_BYTES = sum(1 << c for c in b'abcdefghijklmnopqrstuvwxyz0123456789_.-:[]')
+CHARACTER_OPS = (C.LITERAL, C.NOT_LITERAL, C.ANY, C.IN)
 
 
 class CompileLimit(ProtocolError):
@@ -29,11 +30,12 @@ def bits(mask):
 class NFA:
     def __init__(self, *, max_nfa=100000, max_dfa=20000, seconds=120):
         self.max_nfa, self.max_dfa = max_nfa, max_dfa
-        self.deadline = monotonic()+seconds
+        self.deadline = perf_counter()+seconds
         self.edges, self.eps, self.begin, self.end, self.outputs = [], [], [], [], []
+        self.dominance = {}
 
     def check(self):
-        if monotonic() > self.deadline:
+        if perf_counter() >= self.deadline:
             raise CompileLimit('compiler time limit exceeded')
 
     def state(self):
@@ -78,32 +80,71 @@ class NFA:
         return a, a
 
     def regex(self, source, *, match_case=False):
+        return self.sequence(self.parse_regex(source), match_case)
+
+    @staticmethod
+    def parse_regex(source):
         # Python's bell escape has a different meaning in JavaScript regexes.
         if '\\a' in source:
             raise RegexUnsupported('non-portable regex escape')
         tree = parser.parse(source, flags=C.SRE_FLAG_ASCII)
         if tree.state.flags != C.SRE_FLAG_ASCII:
             raise RegexUnsupported('inline regex flags are outside the profile')
-        return self.sequence(tree, match_case)
+        return tree
+
+    def regex_union(self, sources, *, match_case=False):
+        # Identical context/action rules share URL prefixes and the matched suffix.
+        # Otherwise subset construction needlessly remembers which rule matched.
+        trie = [{'edges':{}, 'final':False}]
+        for source in sources:
+            self.check()
+            current = 0
+            for token in self.parse_regex(source):
+                key = repr(token)
+                edges = trie[current]['edges']
+                if key not in edges:
+                    if len(trie) >= self.max_nfa:
+                        raise CompileLimit('regex prefix trie exceeds NFA bound')
+                    edges[key] = (token,len(trie))
+                    trie.append({'edges':{},'final':False})
+                current = edges[key][1]
+            trie[current]['final'] = True
+        start, end = self.state(), self.state()
+        pending = [(0,start)]
+        while pending:
+            index, state = pending.pop()
+            if trie[index]['final']:
+                self.eps[state].append(end)
+            for token, child in trie[index]['edges'].values():
+                if token[0] in CHARACTER_OPS:
+                    right = self.state()
+                    self.edge(state,right,self.character_mask(*token,match_case))
+                else:
+                    left, right = self.sequence([token],match_case)
+                    self.eps[state].append(left)
+                pending.append((child,right))
+        return start, end
+
+    def character_mask(self, op, value, case):
+        if op == C.ANY:
+            charset = ALL ^ (1 << 10)
+        elif op == C.IN:
+            charset = self.charset(value)
+        else:
+            if value > 255:
+                raise RegexUnsupported('non-byte regex literal')
+            charset = 1 << value
+            if op == C.NOT_LITERAL:
+                charset ^= ALL
+        # ABP lowercases the pattern AND the input, including regex escapes.
+        return sum(1 << b for b in range(32,127)
+                   if charset & (1 << (b+32 if not case and 65 <= b <= 90 else b)))
 
     def sequence(self, nodes, case):
         fragments = []
         for op, value in nodes:
-            if op in (C.LITERAL, C.NOT_LITERAL, C.ANY, C.IN):
-                if op == C.ANY:
-                    charset = ALL ^ (1 << 10)
-                elif op == C.IN:
-                    charset = self.charset(value)
-                else:
-                    if value > 255:
-                        raise RegexUnsupported('non-byte regex literal')
-                    charset = 1 << value
-                    if op == C.NOT_LITERAL:
-                        charset ^= ALL
-                # ABP lowercases the pattern AND the input, including regex escapes.
-                mask = sum(1 << b for b in range(32, 127)
-                           if charset & (1 << (b+32 if not case and 65 <= b <= 90 else b)))
-                fragments.append(self.char(mask))
+            if op in CHARACTER_OPS:
+                fragments.append(self.char(self.character_mask(op,value,case)))
             elif op == C.SUBPATTERN:
                 _, add, remove, child = value
                 if add or remove:
@@ -198,6 +239,11 @@ class NFA:
                     if not found & bit:
                         found |= bit
                         todo.append(dest)
+            # Once a same-policy URL pattern has matched, its suffix accepts every
+            # remaining URL byte. Earlier alternatives cannot add another output.
+            for marker, redundant in self.dominance.items():
+                if found & marker:
+                    found &= ~redundant
             return found
 
         initial = (closure(1 << start), False)

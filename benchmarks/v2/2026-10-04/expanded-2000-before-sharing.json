@@ -1,0 +1,68 @@
+{
+  "browser_execution": false,
+  "compile_bounds": {
+    "max_dfa": 100000,
+    "max_nfa": 100000,
+    "seconds": 300.0
+  },
+  "extension": false,
+  "implementation_sha256": {
+    "src/zids_v2/__init__.py": "2887470253d603a9e0a3253eb5645574c715354fcd425930275fea7af9869a9a",
+    "src/zids_v2/__main__.py": "e19c098d60ee91e5b09d7c4dc54ba490964e292b32d42c470f62480b8635a4fc",
+    "src/zids_v2/artifacts.py": "04f78b0908c684b162706707b1a0500b5fd163b7142bc2a915e9cb9dba5b09fa",
+    "src/zids_v2/automata.py": "2b7f07da58c6a46244321448c88bf708becebc50d5b84f71ae5abb7a1384b9e6",
+    "src/zids_v2/base_ot.py": "f155b061c9a3f3e080745fbaae874b4950aaac3ab0aa123453e6e57f18d7f598",
+    "src/zids_v2/batch_ot.py": "dd9bf9fc77a6dfbdb92c6e1fbf05b372064feb7da42b5cc8315b3f5a694caf9c",
+    "src/zids_v2/codec.py": "e8ab3ba50ab8b22b1fdce9da44c8911bd67b9009c3a5439309d90108b433a6dc",
+    "src/zids_v2/compiler.py": "c0d2d04fb7f47a3e4fdfd1b77413f16fa7500ad175e12b3e36588d1c7bdb0587",
+    "src/zids_v2/context.py": "098a55f11e7dc4e1dc0e018fe42a977d9a81954c9ab1cc40ec075a6124f1a50d",
+    "src/zids_v2/contracts.py": "19c8e20882862e36f1d0f19619804bce4e8ab0e0bb217b646ca31ede715e17b0",
+    "src/zids_v2/crypto.py": "d8352aa8b1a7b69ad2111353bbeeda55c75bb9d211354e9202c180bc1f1de1c3",
+    "src/zids_v2/dfa.py": "5c7bd342e9d6a102c62835d7e09cc416295a9aa11692cc3581944952ff8c24cc",
+    "src/zids_v2/easylist.py": "244676b07958f614150a8d3e3bb4cc45c83dca95029e374b67b82416002f46f6",
+    "src/zids_v2/gdfa.py": "909defbb87617f6ac5ed684b40836fd4fa21c047332f2da67631fae8684e1798",
+    "src/zids_v2/lifecycle.py": "5aa73dc2b1a4a715b7301350af1f4301aa17934ba79356429685550d34e60419",
+    "src/zids_v2/measure.py": "21ee83cb86f27a9f603f653af41b7c60c7b1523ad5f0c854a067b0c11e07f301",
+    "src/zids_v2/ot256.py": "7ed6bd9f4d6faf9f3764a98e3759f79a4d590b8003ef78431092541f39a98ced",
+    "src/zids_v2/protocol.py": "161b1685395821175005f48a0a9d8929edff030fa82e0c79ab00f2555d73b3f2",
+    "src/zids_v2/wire.py": "69803ea3fb07f70b0cc7bd96f950f7fb0983fef815d2584ed0dc2a73c27d4ba2"
+  },
+  "measurement": "fresh spawned workers, wall clock, process CPU and OS peak RSS",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "python": "3.12.0 (tags/v3.12.0:0fb18b0, Oct  2 2023, 13:03:39) [MSC v.1935 64 bit (AMD64)]",
+  "reference": {
+    "archive_sha256": "bf1d82cdf3854fbb6071e9a1cdb9a0f0bd144ded7ff5071e78e945a12f174b82",
+    "commit": "5073eaf111cc3c46343046e6371371a9d0e8b9df",
+    "profile": "abp-core-0.11.1-network-v1",
+    "repository": "https://github.com/adblockplus/adblockpluscore"
+  },
+  "scales": [
+    {
+      "compile": {
+        "cpu_seconds": 295.8125,
+        "error": "compiler time limit exceeded",
+        "error_type": "CompileLimit",
+        "peak_rss_bytes": 789917696,
+        "status": "failed",
+        "wall_seconds": 300.476505599916
+      },
+      "coverage": {
+        "supported": 2000
+      },
+      "name": "profile2000",
+      "network_rules": 2000,
+      "reference_cases": 16,
+      "reference_seconds": 0.06608289992436767,
+      "regex_failures": 0,
+      "source_sha256": "e1fdcb8f165822c71db5b44b99ff0434af0c2b5b9fb02795aa50bc2d570dcfe5",
+      "status": "compile_limit",
+      "verdict_counts": {
+        "0": 14,
+        "1": 2,
+        "2": 0
+      }
+    }
+  ],
+  "secure_selection": "first three cases per requested successful scale",
+  "suite": "NP-ED25519-SHA256-v1"
+}

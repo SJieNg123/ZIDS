@@ -1,0 +1,22 @@
+{
+  "local_raw_runs": [
+    "benchmark-20261004",
+    "benchmark-20261004-final",
+    "benchmark-20261004-2000-expanded",
+    "benchmark-20261004-full-expanded",
+    "benchmark-20261004-2000-shared-policy",
+    "benchmark-20261004-release-full"
+  ],
+  "reports": {
+    "baseline-49b5044.json": "28e45a61a70c621cff9a9987bb024e5eabeb1c5ab6990d4d53b314bc8a5a6bf5",
+    "expanded-2000-before-sharing.json": "c833803664ad0a15d6930af14b29f495b9f9c4aaa1308695cf7cc9d5b6477486",
+    "expanded-2000.json": "fe8e2cc852ad8fa911dff2a70ee32991a11a7aaf3e8ec16ed821cd7e07997336",
+    "expanded-full-before-sharing.json": "4787e3a0af53671e52740ab184fcc01f9f7c3d4f67f0e9702096b560e6c6fec9",
+    "expanded-full.json": "7238da6243207de509a9c0322e0efcd75a1d6c757b1a635a50b2b6129e7fa0cc",
+    "full-run-source.zip": "3d611b6d19bb40c2f4656beb58a572e7131794dc2b58c5be58490bfca2d7f81c",
+    "ot-and-scale.json": "858bc3efca7bbfba6607d7335ff1ce2f3dd2b7752fecce44321882474a789df0",
+    "policy-equivalence.json": "9cf36674d22873ff4980a1a8e32508faff8d5b1a9cca577066b1e130bbcf4d07",
+    "validation.json": "6c277f0974f08e4fc567ce4fa917b9ee4bca9dfaa30c7fcd50bca40ef260c8a9"
+  },
+  "scope": "Only public test inputs, measurements and implementation sources. No session private key material is included."
+}

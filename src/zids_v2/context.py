@@ -28,10 +28,12 @@ def canonical_url(value):
             raise ValueError('credentials and backslashes require caller normalization')
         host = parts.hostname.lower()
         if ':' in host:
+            if '%' in host:
+                raise ValueError('scoped IPv6 requires caller normalization')
             host = '['+ipaddress.IPv6Address(host).compressed+']'
         else:
             host = host.encode('idna').decode('ascii')
-            if not re.fullmatch(r'[a-z0-9_.-]+', host):
+            if not re.fullmatch(r'[a-z0-9_.-]+', host) or '..' in host or host.startswith('.'):
                 raise ValueError('invalid hostname')
         port = parts.port
         if port == (443 if scheme in ('https','wss') else 80):
@@ -49,6 +51,11 @@ def canonical_url(value):
 def hostname(url):
     host = urlsplit(url).hostname or ''
     return '['+host+']' if ':' in host else host
+
+
+def is_ip_address(host):
+    """The pinned matcher identifies address-shaped, already serialized hosts."""
+    return (host.startswith('[') and host.endswith(']')) or bool(re.fullmatch(r'\d+\.\d+\.\d+\.\d+',host,re.ASCII))
 
 
 @lru_cache(maxsize=1)
@@ -72,12 +79,8 @@ def third_party(url, document_url):
         return False
     if not a or not b:
         return True
-    for host in (a,b):
-        try:
-            ipaddress.ip_address(host.strip('[]'))
-            return True
-        except ValueError:
-            pass
+    if is_ip_address(a) or is_ip_address(b):
+        return True
     return base_domain(a) != base_domain(b)
 
 
@@ -89,7 +92,7 @@ class RequestContext:
     ancestors: tuple = ()
 
     def __post_init__(self):
-        if self.resource_type not in TYPE_CODES:
+        if type(self.resource_type) is not str or self.resource_type not in TYPE_CODES:
             raise ProtocolError('unknown resource type')
         if type(self.ancestors) not in (tuple, list) or len(self.ancestors) > 16:
             raise ProtocolError('invalid ancestor chain')

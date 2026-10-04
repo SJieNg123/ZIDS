@@ -1,6 +1,7 @@
 """A single output-policy DFA over private, framed request context bytes."""
 from collections import deque
 import hashlib
+import re
 from time import perf_counter
 
 from .automata import NFA, HOST_BYTES, URL_BYTES, bits, minimize, RegexUnsupported
@@ -12,7 +13,7 @@ from .easylist import PROFILE, CoverageError, parse_sources
 COMPILER_VERSION = 'policy-dfa-v1'
 
 
-def domain_fragment(nfa, domains):
+def domain_fragment(nfa, domains, *, default=None):
     if not domains:
         return nfa.join([nfa.loop(HOST_BYTES), nfa.char(1)])
     # Aho suffix machine with a virtual leading dot enforces label boundaries.
@@ -26,7 +27,7 @@ def domain_fragment(nfa, domains):
                 failure.append(0)
                 values.append(None)
             state = children[state][byte]
-        values[state] = (len(domain), include)
+        values[state] = (len(domain), include, bool(re.fullmatch(r'\d+(?:\.\d+){0,2}',domain,re.ASCII)))
     queue = deque(children[0].values())
     while queue:
         state = queue.popleft()
@@ -38,9 +39,43 @@ def domain_fragment(nfa, domains):
             failure[dest] = children[parent].get(byte, 0)
             if values[dest] is None:
                 values[dest] = values[failure[dest]]
+    default = not any(include for _, include in domains) if default is None else default
+    if any(re.fullmatch(r'\d+(?:\.\d+){0,2}',domain,re.ASCII) for domain,_ in domains):
+        # Only numeric suffix restrictions need this extra IP-shape component.
+        # A complete four-part IPv4 address cannot inherit a partial domain key.
+        initial = (children[0][ord('.')],0)
+        states = {initial:nfa.state()}
+        pending = [initial]
+        end = nfa.state()
+        for current, shape in pending:
+            groups = {}
+            for byte in bits(HOST_BYTES):
+                parent = current
+                while parent and byte not in children[parent]:
+                    parent = failure[parent]
+                dest = children[parent].get(byte,0)
+                if shape == 8:
+                    next_shape = 8
+                elif 48 <= byte <= 57:
+                    next_shape = shape | 1
+                elif byte == 46 and shape & 1 and shape < 7:
+                    next_shape = shape+1
+                else:
+                    next_shape = 8
+                pair = (dest,next_shape)
+                if pair not in states:
+                    states[pair] = nfa.state()
+                    pending.append(pair)
+                groups[pair] = groups.get(pair,0) | (1 << byte)
+            for pair, mask in groups.items():
+                nfa.edge(states[(current,shape)],states[pair],mask)
+            value = values[current]
+            active = default if value is None or (shape == 7 and value[2]) else value[1]
+            if active:
+                nfa.edge(states[(current,shape)],end,1)
+        return states[initial],end
     states = [nfa.state() for _ in children]
     end = nfa.state()
-    default = not any(include for _, include in domains)
     for state in range(len(children)):
         groups = {}
         for byte in bits(HOST_BYTES):
@@ -63,13 +98,18 @@ def any_frame(nfa, kind):
                      nfa.char(1 << URL_START), nfa.loop(URL_BYTES), nfa.char(1)])
 
 
-def matched_frame(nfa, rule, kind):
+def matched_frame(nfa, rule, kind, patterns, suffix):
     types = [TYPE_CODES[t] for t in rule.types if t in TYPE_CODES] if kind == REQUEST else [TYPE_CODES['document']]
     party = (1 << 16) | (1 << 17) if rule.third_party is None else 1 << (16+int(rule.third_party))
-    return nfa.join([nfa.char(1 << kind), nfa.char(sum(1 << t for t in types)), nfa.char(party),
-                     domain_fragment(nfa, rule.domains), nfa.char(1 << URL_START),
-                     nfa.loop(URL_BYTES), nfa.regex(rule.regex_source, match_case=rule.match_case),
-                     nfa.loop(URL_BYTES), nfa.char(1)])
+    prefix = nfa.join([nfa.char(1 << kind), nfa.char(sum(1 << t for t in types)), nfa.char(party),
+                       domain_fragment(nfa, rule.domains, default=rule.generic), nfa.char(1 << URL_START)])
+    first = len(nfa.edges)
+    search = nfa.loop(URL_BYTES)
+    pattern = nfa.regex_union(patterns, match_case=rule.match_case)
+    last = len(nfa.edges)
+    marker = 1 << suffix[0]
+    nfa.dominance[marker] = nfa.dominance.get(marker,0) | (((1 << last)-1) ^ ((1 << first)-1))
+    return nfa.join([prefix,search,pattern,suffix])
 
 
 def regex_coverage(rules):
@@ -105,19 +145,26 @@ def compile_rules(rules, **bounds):
         nfa.eps[suffix[0]].append(finish[0])
         nfa.outputs[finish[1]] = flag
         suffixes[flag] = suffix[0]
+    url_suffixes = {}
+    for kind, flag in ((REQUEST,1),(REQUEST,2),(REQUEST,4),(DOCUMENT,4),(DOCUMENT,8)):
+        suffix = nfa.join([nfa.loop(URL_BYTES),nfa.char(1)])
+        nfa.eps[suffix[1]].append(suffixes[flag])
+        url_suffixes[(kind,flag)] = suffix
+    grouped = {}
     for rule in rules:
+        key = (rule.action,rule.types,rule.domains,rule.generic,rule.third_party,rule.match_case)
+        if key not in grouped:
+            grouped[key] = (rule,[])
+        grouped[key][1].append(rule.regex_source)
+    for rule, patterns in grouped.values():
         if any(t in TYPE_CODES for t in rule.types):
-            fragment = matched_frame(nfa, rule, REQUEST)
-            nfa.eps[request_start].append(fragment[0])
             flag = 4 if rule.action == ALLOW else 1 if rule.generic else 2
-            nfa.eps[fragment[1]].append(suffixes[flag])
+            fragment = matched_frame(nfa, rule, REQUEST, patterns, url_suffixes[(REQUEST,flag)])
+            nfa.eps[request_start].append(fragment[0])
         if rule.action == ALLOW and ('document' in rule.types or 'genericblock' in rule.types):
-            fragment = matched_frame(nfa, rule, DOCUMENT)
+            flag = 4 if 'document' in rule.types else 8
+            fragment = matched_frame(nfa, rule, DOCUMENT, patterns, url_suffixes[(DOCUMENT,flag)])
             nfa.eps[document_start].append(fragment[0])
-            if 'document' in rule.types:
-                nfa.eps[fragment[1]].append(suffixes[4])
-            if 'genericblock' in rule.types:
-                nfa.eps[fragment[1]].append(suffixes[8])
     construction = perf_counter()-started
     dfa, alphabet_classes = nfa.determinize(start)
     raw_q = dfa.q

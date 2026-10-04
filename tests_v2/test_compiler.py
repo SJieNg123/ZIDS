@@ -1,4 +1,6 @@
 import itertools
+import json
+from pathlib import Path
 import unittest
 
 from src.zids_v2.automata import CompileLimit
@@ -83,6 +85,31 @@ class CompilerTests(unittest.TestCase):
                               lambda i,s: rows[i][s*size:(s+1)*size], selected)
             self.assertEqual(dfa.evaluate(data), output)
             self.assertEqual(result, output)
+
+    def test_shared_patterns_keep_exception_and_end_anchor_semantics(self):
+        source = '*ab*\n*ba*\n/(ab|b){2,3}$/\n@@*aba*\n@@/b{3}$/\n*bb*$image,domain=site.example'
+        rules, _ = parse_sources([('shared',source)])
+        dfa, _, _ = compile_sources([('shared',source)])
+        contexts = [RequestContext('https://x/'+''.join(word),'image','https://site.example/')
+                    for length in range(7) for word in itertools.product('ab',repeat=length)]
+        expected = [v['decision'] for v in oracle(rules,contexts)['outputs']]
+        self.assertEqual([dfa.evaluate(c.encode()) for c in contexts],expected)
+
+    def test_frozen_200_rule_fixture_with_all_three_verdicts(self):
+        root = Path(__file__).parent/'fixtures'
+        source = (root/'context200.abp').read_text(encoding='utf8')
+        records = [json.loads(line) for line in (root/'context200.jsonl').read_text(encoding='utf8').splitlines()]
+        contexts = [RequestContext.from_dict(row['context']) for row in records]
+        expected = [row['expected'] for row in records]
+        rules, _ = parse_sources([('context200',source)])
+        self.assertEqual(len(rules),200)
+        self.assertEqual(len(contexts),406)
+        self.assertEqual(set(expected),{0,1,2})
+        reference = oracle(rules,contexts)
+        self.assertEqual(reference['diagnostics'],[])
+        self.assertEqual([v['decision'] for v in reference['outputs']],expected)
+        dfa, _, _ = compile_sources([('context200',source)])
+        self.assertEqual([dfa.evaluate(c.encode()) for c in contexts],expected)
 
 
 if __name__ == '__main__':
