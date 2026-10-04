@@ -13,7 +13,7 @@ Latest scope: base OT only. No OT extension or OT-specific preprocessing optimiz
 | 5 | Complete | Two-process whole/split batches agree, wire byte counters agree, 8n base transfers measured, extension names rejected. 2 tests in 0.559 s |
 | 6 | Complete | Exhaustive short-word grouping/search checks, six state-index widths, tail/alignment/resource/permutation cases. 3 tests in 0.002 s |
 | 7 | Complete | Sparse position matrix, fresh keys/permutations/pad chains and final-only evaluation. Exhaustive ideal-selection tests plus real OT in two processes, 3 tests in 0.931 s |
-| 8 | Pending | Streaming offline GDFA |
+| 8 | Complete | Streaming public matrix/private bundles, canonical manifests, mmap evaluation and hashes. Roundtrip, tampering and bounded-memory checks passed, 3 tests in 0.381 s |
 | 9 | Pending | EasyList parser, context and reference |
 | 10 | Pending | Policy DFA compiler |
 | 11 | Pending | Persistent lifecycle and supported CLI |
