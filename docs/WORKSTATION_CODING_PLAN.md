@@ -23,3 +23,10 @@ state and time caps remain opt-in. Existing legacy edits and prior runs stay int
 
 Full-snapshot acceptance remains pending workstation measurements. Large
 intermediate state counts do not establish the size of the final minimized DFA.
+
+Step 1 implemented: `python -m tools.jobs_v2 start --directory JOB -- COMMAND`
+launches a detached supervisor. `python -m tools.jobs_v2 status --directory JOB`
+returns persisted state. Two tests passed in 4.572 s, covering launcher exit,
+successful/failed real child processes, retained logs and lost-supervisor
+reconciliation. `SUPERVISOR_LOST` means the worker outcome is unknown, not OOM.
+Machine shutdown or an enclosing OS job manager can still interrupt execution.
