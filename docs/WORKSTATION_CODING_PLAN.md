@@ -71,6 +71,8 @@ candidates, with 46,901 rules witnessed and 253 explicitly unwitnessed.
 Reports are retained under `benchmarks/v2/2026-10-05/`.
 
 All five coding increments are complete. Full-scale compilation/private
-evaluation, any further optimization indicated by those measurements, and actual
-Linux execution remain unverified. Use [WORKSTATION.md](WORKSTATION.md) for the
-next experiments. No default compiler state/time caps or OT extension were added.
+evaluation and any further optimization indicated by those measurements remain
+unverified. Ubuntu 24.04.1 WSL2 / Python 3.12.3 subsequently passed all 63 tests in
+82.200 s, plus dependency and native group checks. The user's Ubuntu workstation
+and remote CI have not been exercised. Use [WORKSTATION.md](WORKSTATION.md) for
+the next experiments. No default compiler state/time caps or OT extension were added.

@@ -36,8 +36,12 @@ states, with 13,044,662 processed and about 25.3 GiB peak working-set RSS, befor
 the worker/controller disappeared. No final DFA or exit/OOM record was produced.
 This does not establish the minimized Q or a proven hardware ceiling. That run
 predated checkpoints and cannot be resumed. The new implementation still needs
-2,000-rule and full-snapshot acceptance measurements on the workstation. Linux
-CI is configured, but its execution has not been observed in this workspace.
+2,000-rule and full-snapshot acceptance measurements on the workstation.
+Subsequent Ubuntu 24.04.1 WSL2 / Python 3.12.3 validation passed 63 tests in
+82.200 s. Pinned dependency and native group checks also passed, using Node
+22.23.3 for the oracle. `benchmarks/v2/2026-10-05/ubuntu-wsl-validation.json`
+retains environment, commands, exit codes and source hashes. CI now targets
+Ubuntu 24.04, but the remote job and the user's workstation have not been run.
 See [WORKSTATION.md](WORKSTATION.md) for detached runs and recovery commands.
 
 ## Historical bounded measurements, 2026-10-04

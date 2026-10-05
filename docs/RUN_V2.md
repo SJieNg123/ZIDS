@@ -91,10 +91,12 @@ python tools/check_v2_crypto.py
 python -m unittest discover -s tests_v2 -v
 ```
 
-On Windows Python 3.12, the 2026-10-05 suite passed 63 tests in 96.398 seconds. See
+On Windows Python 3.12, the 2026-10-05 suite passed 63 tests in 96.398 seconds.
+Ubuntu 24.04.1 WSL2 / Python 3.12.3 also passed 63 tests in 82.200 seconds, plus
+dependency and native group checks. See
 [BENCHMARK_V2.md](BENCHMARK_V2.md) for measured capacity, timings and remaining
-large-profile limits. Linux commands and CI are provided, but Linux execution
-has not yet been verified in this workspace.
+large-profile limits. The target Ubuntu workstation and remote CI have not yet
+been exercised. Ubuntu setup and transfer commands are in [WORKSTATION.md](WORKSTATION.md).
 
 Protocol details are in [protocol_spec.md](protocol_spec.md),
 [ot_suite.md](ot_suite.md), [easylist_profile.md](easylist_profile.md) and

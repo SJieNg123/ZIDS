@@ -17,8 +17,10 @@ See [WORKSTATION.md](WORKSTATION.md) for commands and recovery limits, and
 
 The earlier unlimited 2,000-rule attempt ended without a final policy or recorded
 exit reason. No OOM diagnosis is established. The new compiler has not completed
-the 2,000-rule or full-snapshot acceptance experiments. Linux runtime validation
-also remains pending. Original step 12 remains open for those measurements.
+the 2,000-rule or full-snapshot acceptance experiments. Ubuntu 24.04.1 WSL2 with
+Python 3.12.3 passed all 63 tests in 82.200 s, plus dependency and native group
+checks. The actual Ubuntu workstation and remote CI remain unverified. Original
+step 12 remains open for the full-scale measurements.
 
 Earlier 2026-10-05 execution update: the user requested running DFA compilation until
 completion or hardware/resource failure. Compiler state/time limits and the
