@@ -6,3 +6,7 @@ v2-runs/
 node_modules/
 .reference/
 .venv/
+
+# Rebuildable legacy protocol artifacts and benchmark output
+/artifacts/
+/out/
