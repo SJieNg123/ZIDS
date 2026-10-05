@@ -10,11 +10,13 @@ from time import monotonic
 
 from .contracts import ProtocolError
 from .local_state import exclusive_lock
+from .packed import PackedTransitions
+from array import array
 
 
 def identity(nfa, start, partitions, binding):
     digest = hashlib.sha256()
-    for name in ('automata.py','compiler.py','checkpoint.py','dfa.py','context.py','easylist.py'):
+    for name in ('automata.py','compiler.py','checkpoint.py','packed.py','dfa.py','context.py','easylist.py'):
         digest.update(Path(__file__).with_name(name).read_text(encoding='utf8').encode('utf8'))
     digest.update(json.dumps([1,sys.version_info[:3],start,partitions,binding],sort_keys=True).encode())
     for index in range(len(nfa.edges)):
@@ -33,8 +35,9 @@ def encode_key(subset, beginning):
 
 
 class MemoryStates:
-    def __init__(self):
-        self.states, self.indices, self.rows, self.outputs = [], {}, [], []
+    def __init__(self, mapping):
+        self.states, self.indices = [], {}
+        self.rows, self.outputs = PackedTransitions(mapping),bytearray()
 
     @property
     def count(self):
@@ -55,11 +58,11 @@ class MemoryStates:
         return self.states[index]
 
     def append(self, row, output):
-        self.rows.append(tuple(row))
+        self.rows.append(row)
         self.outputs.append(output)
 
     def result(self):
-        return tuple(self.rows),tuple(self.outputs)
+        return self.rows,bytes(self.outputs)
 
     def __enter__(self):
         return self
@@ -69,10 +72,11 @@ class MemoryStates:
 
 
 class DiskStates:
-    def __init__(self, path, fingerprint, *, commit_rows=1000):
+    def __init__(self, path, fingerprint, mapping, *, commit_rows=1000):
         if type(commit_rows) is not int or commit_rows < 1:
             raise ValueError('checkpoint interval must be positive')
         self.path, self.fingerprint = Path(path), fingerprint
+        self.mapping = mapping
         self.commit_rows = commit_rows
 
     def __enter__(self):
@@ -139,13 +143,17 @@ class DiskStates:
 
     def result(self):
         self.commit()
-        rows, outputs = [], []
+        rows, outputs = PackedTransitions(self.mapping),bytearray()
         for row, output in self.db.execute('SELECT row,output FROM states ORDER BY id'):
             if row is None:
                 raise ProtocolError('checkpoint is incomplete')
-            rows.append(struct.unpack('<'+str(len(row)//8)+'Q',row))
+            values = array('Q')
+            values.frombytes(row)
+            if sys.byteorder != 'little':
+                values.byteswap()
+            rows.append(values)
             outputs.append(output)
-        return tuple(rows),tuple(outputs)
+        return rows,bytes(outputs)
 
     def __exit__(self, kind, value, traceback):
         try:

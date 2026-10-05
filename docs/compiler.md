@@ -59,3 +59,13 @@ sources, Python version and constructed NFA are bound to the checkpoint, and an
 OS lock excludes concurrent writers. Checkpoints contain private policy only.
 Completed determinization is retained if later minimization or output fails.
 Construction and minimization restart on recovery. OT sessions are never resumed.
+
+Intermediate and minimized transitions use packed uint64 arrays over equivalent
+byte classes, with a total 256-byte indexing view for the protocol. Checkpoint
+rows use the same compact columns. Subset identities remain in SQLite in
+checkpoint mode, with an 8,192-entry lookup cache. Output-preserving Moore
+refinement uses packed class IDs and byte signatures, avoiding dense Python
+transition rows and a second expanded transition table. This reduces storage
+cost, not the number of reachable subset combinations. Refinement can still be
+expensive on large policies. Progress includes the current active NFA count,
+and compile statistics distinguish intermediate and minimized transition bytes.

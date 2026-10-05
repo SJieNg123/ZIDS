@@ -170,12 +170,15 @@ def compile_rules(rules, *, progress=None, **bounds):
     construction = perf_counter()-started
     dfa, alphabet_classes = nfa.determinize(start)
     raw_q = dfa.q
+    intermediate_bytes = len(dfa.transitions.data)*dfa.transitions.data.itemsize
     determinized = perf_counter()
     nfa.phase('minimization', raw_q=raw_q)
     dfa = minimize(dfa, check=nfa.check, symbols=nfa.symbols)
     nfa.phase('grouping', q=dfa.q)
     groups = group_characters(dfa.padded())
     stats = {'nfa_states':len(nfa.edges), 'raw_q':raw_q, 'q':dfa.q, 'alphabet_classes':alphabet_classes,
+             'intermediate_transition_bytes':intermediate_bytes,
+             'transition_bytes':len(dfa.transitions.data)*dfa.transitions.data.itemsize,
              'outmax':groups.outmax, 'cmax':groups.cmax, 'groups':len(groups.catalog),
              'construction_seconds':construction, 'determinize_seconds':determinized-started-construction,
              'minimize_seconds':perf_counter()-determinized, 'compile_seconds':perf_counter()-started}
@@ -197,8 +200,9 @@ def compile_sources(sources, **bounds):
 
 
 def policy_dict(dfa, provenance):
-    return {'version':COMPILER_VERSION, 'profile':PROFILE, 'transitions':dfa.transitions,
-            'outputs':dfa.outputs, 'start':dfa.start, 'provenance':provenance}
+    return {'version':COMPILER_VERSION, 'profile':PROFILE,
+            'transitions':[list(row) for row in dfa.transitions],
+            'outputs':list(dfa.outputs), 'start':dfa.start, 'provenance':provenance}
 
 
 def policy_dfa(value):

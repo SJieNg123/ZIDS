@@ -2,12 +2,13 @@
 from dataclasses import dataclass
 
 from .contracts import ProtocolError, bounded_int
+from .packed import PackedTransitions
 
 NOMATCH, BLOCK, ALLOW = 0, 1, 2
 LABELS = ("NOMATCH", "BLOCK", "ALLOW")
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True,eq=False)
 class DFA:
     transitions: tuple
     outputs: tuple
@@ -18,11 +19,14 @@ class DFA:
         if q < 1 or len(self.outputs) != q:
             raise ProtocolError("invalid DFA dimensions")
         bounded_int(self.start, 0, q-1, "start state")
-        for row in self.transitions:
-            if len(row) != 256:
-                raise ProtocolError("DFA must use total 256-byte alphabet")
-            for dest in row:
-                bounded_int(dest, 0, q-1, "destination")
+        if isinstance(self.transitions,PackedTransitions):
+            self.transitions.validate(q)
+        else:
+            for row in self.transitions:
+                if len(row) != 256:
+                    raise ProtocolError("DFA must use total 256-byte alphabet")
+                for dest in row:
+                    bounded_int(dest, 0, q-1, "destination")
         for output in self.outputs:
             bounded_int(output, 0, 2, "output label")
 
@@ -39,7 +43,13 @@ class DFA:
     def padded(self):
         if self.q >= 2:
             return self
-        return DFA(self.transitions + (tuple([1]*256),), self.outputs+(NOMATCH,), self.start)
+        return DFA(tuple(self.transitions) + (tuple([1]*256),), tuple(self.outputs)+(NOMATCH,), self.start)
+
+    def __eq__(self, other):
+        if not isinstance(other,DFA):
+            return NotImplemented
+        return (self.start == other.start and tuple(self.outputs) == tuple(other.outputs)
+                and self.transitions == other.transitions)
 
 
 @dataclass(frozen=True)

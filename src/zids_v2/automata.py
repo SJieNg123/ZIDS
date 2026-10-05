@@ -6,6 +6,8 @@ from re import _parser as parser, _constants as C
 from .contracts import ProtocolError
 from .dfa import DFA, NOMATCH, BLOCK, ALLOW
 from .checkpoint import MemoryStates, DiskStates, identity
+from .packed import PackedTransitions
+from array import array
 
 ALL = (1 << 256)-1
 URL_BYTES = sum(1 << c for c in range(32, 127))
@@ -268,8 +270,12 @@ class NFA:
                     found &= ~redundant
             return found
 
-        store = (MemoryStates() if self.checkpoint is None else DiskStates(self.checkpoint,
-                 identity(self,start,partitions,self.checkpoint_binding),commit_rows=self.checkpoint_rows))
+        mapping = [0]*256
+        for index, partition in enumerate(partitions):
+            for byte in bits(partition):
+                mapping[byte] = index
+        store = (MemoryStates(mapping) if self.checkpoint is None else DiskStates(self.checkpoint,
+                 identity(self,start,partitions,self.checkpoint_binding),mapping,commit_rows=self.checkpoint_rows))
         with store:
             store.intern(closure(1 << start),False)
             self.phase('determinization', dfa_states=store.count, processed_states=store.processed)
@@ -281,7 +287,8 @@ class NFA:
     def _expand(self, store, closure, indexed, symbols, partitions):
         while store.processed < store.count:
             subset, beginning = store.state(store.processed)
-            self.check(dfa_states=store.count, processed_states=store.processed)
+            self.check(dfa_states=store.count, processed_states=store.processed,
+                       active_nfa_states=subset.bit_count())
             flags = 0
             for s in bits(subset):
                 flags |= self.outputs[s]
@@ -300,25 +307,30 @@ class NFA:
                 for mask, dest in self.edges[s]:
                     if mask & 1:
                         destinations[end_index] |= 1 << dest
-            row = [0]*256
+            row = []
             for i, move in enumerate(destinations):
                 dest = store.intern(closure(move), symbols[i] == 4 and bool(move))
                 if self.max_dfa is not None and store.count > self.max_dfa:
                     raise CompileLimit('DFA state limit exceeded')
-                for byte in bits(partitions[i]):
-                    row[byte] = dest
+                row.append(dest)
             store.append(row,output)
 
 
 def minimize(dfa, *, check=lambda: None, symbols=range(256)):
     """Moore refinement preserves all three terminal labels, not just acceptance."""
-    classes = list(dfa.outputs)
-    reduced_rows = [tuple(row[b] for b in symbols) for row in dfa.transitions]
+    classes = array('Q',iter(dfa.outputs))
+    if isinstance(dfa.transitions,PackedTransitions):
+        table = dfa.transitions
+    else:
+        mapping = list(range(256))
+        table = PackedTransitions(mapping)
+        for row in dfa.transitions:
+            table.append(row)
     while True:
         check()
-        signatures, revised = {}, []
-        for row, output in zip(reduced_rows, dfa.outputs):
-            signature = (output, tuple(classes[d] for d in row))
+        signatures, revised = {}, array('Q')
+        for state, output in enumerate(dfa.outputs):
+            signature = bytes([output])+array('Q',(classes[d] for d in table.compact_row(state))).tobytes()
             revised.append(signatures.setdefault(signature, len(signatures)))
         if revised == classes:
             break
@@ -326,5 +338,7 @@ def minimize(dfa, *, check=lambda: None, symbols=range(256)):
     representatives = {}
     for s, block in enumerate(classes):
         representatives.setdefault(block, s)
-    return DFA(tuple(tuple(classes[d] for d in dfa.transitions[s]) for s in representatives.values()),
-               tuple(dfa.outputs[s] for s in representatives.values()), classes[dfa.start])
+    reduced = PackedTransitions(table.mapping)
+    for state in representatives.values():
+        reduced.append([classes[d] for d in table.compact_row(state)])
+    return DFA(reduced,bytes(dfa.outputs[s] for s in representatives.values()),classes[dfa.start])

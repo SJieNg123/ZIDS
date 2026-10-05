@@ -36,3 +36,10 @@ A real child exits abruptly after 60 committed rows, then the resumed DFA has
 the same canonical digest as uninterrupted compilation. Identity mismatches and
 concurrent writers are rejected. Eight checkpoint/CLI/benchmark tests passed in
 9.290 s, and all eight existing compiler tests passed in the preceding run.
+
+Step 3 implemented: compact alphabet-class arrays for intermediate/final DFAs,
+SQLite transition rows, and packed refinement signatures. Fifteen storage,
+checkpoint, compiler and codec tests passed in 23.784 s. A 2,000-byte literal
+fixture uses under one twentieth of dense uint64 transition storage. Random
+labelled DFAs retain all three outputs after refinement. No full-scale speedup
+or reduction in reachable subset count is claimed.
