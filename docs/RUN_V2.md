@@ -72,6 +72,8 @@ python -m tools.benchmark_v2 --output v2-runs/unlimited-compile --scales profile
 
 The empty `--secure-scales` selects compilation and reference comparisons only.
 Each scale retains `compile-progress.jsonl`, its final record and any policy.
+See [WORKSTATION.md](WORKSTATION.md) for detached execution, checkpoint recovery,
+benchmark `--resume`, broader oracle cases and large-policy storage details.
 The run continues until completion or an actual process/resource failure.
 Optional `--max-nfa`, `--max-dfa` and `--seconds` reproduce explicitly bounded
 experiments. Omitting them also disables the outer compile-worker timeout.
@@ -89,7 +91,7 @@ python tools/check_v2_crypto.py
 python -m unittest discover -s tests_v2 -v
 ```
 
-On Windows Python 3.12, the 2026-10-05 suite passed 46 tests in 34.760 seconds. See
+On Windows Python 3.12, the 2026-10-05 suite passed 63 tests in 96.398 seconds. See
 [BENCHMARK_V2.md](BENCHMARK_V2.md) for measured capacity, timings and remaining
 large-profile limits. Linux commands and CI are provided, but Linux execution
 has not yet been verified in this workspace.

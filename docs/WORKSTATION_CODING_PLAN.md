@@ -57,3 +57,20 @@ Five additional streaming tests passed in 13.167 s, including a real garbled row
 over 64 MiB, a transport payload over 64 MiB with under 24 MiB traced buffers,
 real base OT over small frames, and invalid fragment ordering/lengths. The large
 transport test isolates framing, it is not a large-scale private evaluation.
+
+Step 5 implemented: per-rule candidate generation with explicit unwitnessed-rule
+records, independent final labels, rule-group NFA diagnostics, compilation-only
+benchmark resume with input/source/version binding and retained attempts, binary
+and legacy policy verification, Windows/Linux commands and expanded CI triggers.
+The complete Windows suite passed 63 tests in 96.398 s. Native group smoke passed.
+A detached synthetic/small benchmark completed six fresh private decisions and
+verified 8n base transfers. Language digests and all measured protocol hashes
+match the retained report. The 200-rule fixture adds 801 independent oracle/DFA
+agreements. Full-snapshot generation produced 187,782 independently labelled
+candidates, with 46,901 rules witnessed and 253 explicitly unwitnessed.
+Reports are retained under `benchmarks/v2/2026-10-05/`.
+
+All five coding increments are complete. Full-scale compilation/private
+evaluation, any further optimization indicated by those measurements, and actual
+Linux execution remain unverified. Use [WORKSTATION.md](WORKSTATION.md) for the
+next experiments. No default compiler state/time caps or OT extension were added.

@@ -4,7 +4,23 @@ Planning commit: `47e4cf2`. User authorized automatic commits after each validat
 
 Latest scope: base OT only. No OT extension or OT-specific preprocessing optimizations. Browser execution excluded.
 
-2026-10-05 execution update: the user requested running DFA compilation until
+2026-10-05 workstation preparation is complete. Detached supervision, resumable
+SQLite determinization, packed transition storage, binary mmap policies,
+streamed matrix/OT fragments and benchmark resume are implemented. The complete
+Windows Python 3.12 suite passed 63 tests in 96.398 s. Six fresh private decisions
+passed in a detached measurement job. Independent ABP labels were obtained for
+187,782 generated full-snapshot candidates, covering automatic witnesses for
+46,901 of 47,154 rules. The remaining 253 rules are explicitly reported.
+This is candidate/oracle coverage, not full-snapshot DFA equivalence.
+See [WORKSTATION.md](WORKSTATION.md) for commands and recovery limits, and
+[WORKSTATION_CODING_PLAN.md](WORKSTATION_CODING_PLAN.md) for increment evidence.
+
+The earlier unlimited 2,000-rule attempt ended without a final policy or recorded
+exit reason. No OOM diagnosis is established. The new compiler has not completed
+the 2,000-rule or full-snapshot acceptance experiments. Linux runtime validation
+also remains pending. Original step 12 remains open for those measurements.
+
+Earlier 2026-10-05 execution update: the user requested running DFA compilation until
 completion or hardware/resource failure. Compiler state/time limits and the
 outer benchmark compile-worker timeout are now disabled by default. Optional
 explicit limits remain available to reproduce the historical measurements below.
@@ -27,7 +43,7 @@ progress, allocation-error reporting and hard worker-exit handling.
 | 9 | Complete | Pinned independent ABP oracle, typed parser, fixed PSL/context codec. 3 semantic test groups passed in 0.130 s. Full snapshot parser coverage: 47,154 supported, 23,813 out of scope, 299 metadata, zero invalid/unsupported |
 | 10 | Complete | One total byte policy DFA, output-preserving minimization and fail-closed bounds. 4 test groups passed in 34.599 s, including 272 oracle/DFA cases and three real base-OT/GDFA decisions. Full snapshot regex feature coverage has zero failures |
 | 11 | Complete | SQLite atomic reservation, fail-closed crash/disconnect handling, manifest binding and supported CLI. 12 lifecycle/CLI/artifact/wire tests passed in 7.488 s, including independent server/client processes and concurrent claimants. Remote mode requires mutual TLS 1.3 |
-| 12 | Implemented, full-scale acceptance incomplete | Final 40 tests passed in 50.466 s. Frozen 200-rule fixture has 406 oracle/DFA agreements and three fresh private decisions. Full parser/regex coverage passes. Expanded 2,000-rule and full-snapshot compilation still exceed bounds. See `docs/BENCHMARK_V2.md` and committed raw records |
+| 12 | Implemented, full-scale acceptance incomplete | Latest 62 tests passed in 76.638 s. Frozen 200-rule fixture retains 406 cases and adds 801 generated oracle/DFA agreements. Full parser/regex coverage passes. Workstation preparation is complete, 2,000-rule/full-snapshot final DFA and private evaluation remain unverified. See `docs/BENCHMARK_V2.md` and committed raw records |
 
 Existing dirty legacy code, configurations, datasets and large artifacts are preserved and excluded from step commits. New code uses `src/zids_v2/`, tests use `tests_v2/`, runtime artifacts use ignored `v2-runs/`.
 

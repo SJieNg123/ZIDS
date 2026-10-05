@@ -1,0 +1,67 @@
+{
+  "policies": [
+    {
+      "current_compile": {
+        "alphabet_classes": 22,
+        "cmax": 16,
+        "compile_seconds": 0.005684100000507897,
+        "construction_seconds": 0.0003723999998328509,
+        "determinize_seconds": 0.0014711000003444497,
+        "groups": 33,
+        "intermediate_transition_bytes": 11088,
+        "minimize_seconds": 0.003840499999569147,
+        "nfa_states": 142,
+        "outmax": 5,
+        "q": 27,
+        "raw_q": 63,
+        "transition_bytes": 4752
+      },
+      "current_dfa_sha256": "1a6cdd89b7f5fe1fac2bf21984f0d6258ce616800a789da90b7d59283f642378",
+      "current_q": 27,
+      "isomorphic": true,
+      "measured_dfa_sha256": "1a6cdd89b7f5fe1fac2bf21984f0d6258ce616800a789da90b7d59283f642378",
+      "measured_q": 27,
+      "name": "synthetic",
+      "secure_sample_inputs_valid": true
+    },
+    {
+      "current_compile": {
+        "alphabet_classes": 37,
+        "cmax": 29,
+        "compile_seconds": 0.01336769999943499,
+        "construction_seconds": 0.0012437999994290294,
+        "determinize_seconds": 0.003184200000760029,
+        "groups": 57,
+        "intermediate_transition_bytes": 28712,
+        "minimize_seconds": 0.008939499999542022,
+        "nfa_states": 204,
+        "outmax": 7,
+        "q": 48,
+        "raw_q": 97,
+        "transition_bytes": 14208
+      },
+      "current_dfa_sha256": "c9cfee6d9541506e549b97497bab375ad25d9218d85fc730e729ccfaa38e35f4",
+      "current_q": 48,
+      "isomorphic": true,
+      "measured_dfa_sha256": "c9cfee6d9541506e549b97497bab375ad25d9218d85fc730e729ccfaa38e35f4",
+      "measured_q": 48,
+      "name": "small",
+      "secure_sample_inputs_valid": true
+    }
+  ],
+  "protocol_files_unchanged": {
+    "__init__": true,
+    "artifacts": true,
+    "base_ot": true,
+    "batch_ot": true,
+    "codec": true,
+    "contracts": true,
+    "crypto": true,
+    "dfa": true,
+    "gdfa": true,
+    "lifecycle": true,
+    "ot256": true,
+    "protocol": true,
+    "wire": true
+  }
+}

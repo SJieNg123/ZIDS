@@ -6,8 +6,9 @@ from pathlib import Path
 import struct
 
 from src.zids_v2.artifacts import read_json, write_json
-from src.zids_v2.compiler import compile_sources, policy_dfa
+from src.zids_v2.compiler import compile_sources
 from src.zids_v2.context import RequestContext
+from src.zids_v2.policy_io import open_policy
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_FILES = ('__init__','artifacts','base_ot','batch_ot','codec','contracts','crypto','dfa',
@@ -44,17 +45,21 @@ def main():
         if record['compile']['status'] != 'ok':
             continue
         name = record['name']
-        old = policy_dfa(read_json(directory/name/'policy.json',limit=128*1024*1024))
+        policy = directory/name/'policy.bin'
+        if not policy.exists():
+            policy = directory/name/'policy.json'
+        with open_policy(policy) as (old,_):
+            old_q, old_digest = old.q,canonical_digest(old)
         text = (directory/name/'rules.abp').read_text(encoding='utf8')
         new, provenance, _ = compile_sources([(name,text)])
         samples = record.get('secure',[])
         samples_valid = all(len(RequestContext.from_dict(s['request']).encode()) == s['n']
                             and new.evaluate(RequestContext.from_dict(s['request']).encode()) == s['expected']
                             for s in samples)
-        old_digest, new_digest = canonical_digest(old),canonical_digest(new)
-        result['policies'].append({'name':name,'measured_q':old.q,'current_q':new.q,
+        new_digest = canonical_digest(new)
+        result['policies'].append({'name':name,'measured_q':old_q,'current_q':new.q,
                                    'measured_dfa_sha256':old_digest,'current_dfa_sha256':new_digest,
-                                   'isomorphic':old.q == new.q and old_digest == new_digest,
+                                   'isomorphic':old_q == new.q and old_digest == new_digest,
                                    'secure_sample_inputs_valid':samples_valid,'current_compile':provenance['stats']})
     write_json(args.output,result)
     print(json.dumps(result,sort_keys=True))

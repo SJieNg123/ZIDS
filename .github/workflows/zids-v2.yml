@@ -7,6 +7,9 @@ on:
       - 'tests_v2/**'
       - 'tools/reference*'
       - 'tools/setup_reference.py'
+      - 'tools/*_v2.py'
+      - 'tools/check_v2_crypto.py'
+      - 'tools/verify_benchmark_policies.py'
       - 'requirements-v2.txt'
       - '.github/workflows/zids-v2.yml'
   pull_request:
@@ -15,6 +18,9 @@ on:
       - 'tests_v2/**'
       - 'tools/reference*'
       - 'tools/setup_reference.py'
+      - 'tools/*_v2.py'
+      - 'tools/check_v2_crypto.py'
+      - 'tools/verify_benchmark_policies.py'
       - 'requirements-v2.txt'
       - '.github/workflows/zids-v2.yml'
 jobs:

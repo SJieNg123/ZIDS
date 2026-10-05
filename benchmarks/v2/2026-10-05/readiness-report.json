@@ -1,0 +1,644 @@
+{
+  "browser_execution": false,
+  "compile_bounds": {
+    "max_dfa": null,
+    "max_nfa": null,
+    "seconds": null
+  },
+  "data_sha256": {
+    "requirements-v2.txt": "0ca5131eb6c7d48fd0b3936b6fe27971d0a15e5d59e48baee9c77f08909c79ff",
+    "src/zids_v2/data/public_suffixes.json": "6d68b5986a8641e2ffcea4cad479f70872f09e6fb8f2af75caab3336634e9925"
+  },
+  "extension": false,
+  "harness_sha256": {
+    "tools/benchmark_v2.py": "2d1002ffca487d1ed801dc11f05af0b651daaba5d32fe0403fb055e3efe1aa91",
+    "tools/cases_v2.py": "e106f97bd68b50e79548970d8520cdfd242ff108e8fd2cdfb8e7bf38b5e353ff",
+    "tools/reference_matcher.cjs": "f3bd7b969d976955fc3be60d2bb4ccd028723a62062535683cd3137bb25ed666"
+  },
+  "implementation_sha256": {
+    "src/zids_v2/__init__.py": "2887470253d603a9e0a3253eb5645574c715354fcd425930275fea7af9869a9a",
+    "src/zids_v2/__main__.py": "09ceabfa9b41aa1d5f251cb2d9cede77124e2249b9d1f67745d1d2ad1b37a293",
+    "src/zids_v2/artifacts.py": "2e62ba59f6df7fad874de65a90e9dbb9f9eb3a989161d59094459e9083082c08",
+    "src/zids_v2/automata.py": "d5092d6b7b222ee634917f861d6618153136cb8805640312a2b599886ef7560c",
+    "src/zids_v2/base_ot.py": "f155b061c9a3f3e080745fbaae874b4950aaac3ab0aa123453e6e57f18d7f598",
+    "src/zids_v2/batch_ot.py": "2a4b82188f397ee6c027bbb14d5e1947806174e2c9e58f905dce424b674401a1",
+    "src/zids_v2/checkpoint.py": "523c4294e8842989663c707f9fffb35b0f29ec55be1de99a554e5faae6a5bdb0",
+    "src/zids_v2/codec.py": "410e627b31730bf62980a75db0a91e23503c934c2ac5c3d1239cc6ad462e1c9d",
+    "src/zids_v2/compiler.py": "3f3f13b0110d5cd821c207b6f81490ed6091f1e5f11b50d26fe2aa2742b3d06f",
+    "src/zids_v2/context.py": "0d751ce0cd6247aba9f55b68a4cd477b7bd97088396a2c67f2852235cc0416c7",
+    "src/zids_v2/contracts.py": "f24d061b8d13b5814424337407ac4cbe34d58aafc5542bc7192dc2bc6cfbbe9d",
+    "src/zids_v2/crypto.py": "193e558e3631ac6f0c1a584330c80ca4e33fd011e691908be3ab0dd23840ba16",
+    "src/zids_v2/dfa.py": "df33e7b967b8b103e3d0f3747f248f6808d06ce5dfa3fa2cb836924317fac48a",
+    "src/zids_v2/easylist.py": "6f6844fdee45105e593744f872a845f5c1cb0965eaf8a5f1d0cfffd5e3f738f9",
+    "src/zids_v2/gdfa.py": "e6cab6b0f2b49a1690d819b7db82ab4a051472f76821ead8113008de5a005e68",
+    "src/zids_v2/lifecycle.py": "5aa73dc2b1a4a715b7301350af1f4301aa17934ba79356429685550d34e60419",
+    "src/zids_v2/local_state.py": "1c0b7b3f87921b91fa1ff98dcc6a6f17fe52c2f422ba5355a907c44c09cd12f3",
+    "src/zids_v2/measure.py": "21ee83cb86f27a9f603f653af41b7c60c7b1523ad5f0c854a067b0c11e07f301",
+    "src/zids_v2/ot256.py": "7574eac7aeba4852e1e104a672f13c97c6788fc4e301563fa494357778b80015",
+    "src/zids_v2/packed.py": "e8d82ecbc48de868083fa847cdcdce76636aedb489e2330d2f57ed3548688548",
+    "src/zids_v2/policy_io.py": "f5199e2f739d0e2aa452d3c3d89f6e65c04e53f85ab07058f2faf06ff9ca8992",
+    "src/zids_v2/protocol.py": "bedf30577b8cab0a06992613fcf4c304b2b96711793e80be0de4b0c67189790c",
+    "src/zids_v2/wire.py": "20f63966c4b01c3926b11d8a9087f62106335f26452cd69673bb35541116ae72"
+  },
+  "inputs_sha256": {
+    "small": "fbaffdc73a833f3691fe8072b1e1a116fb43b161a7a91aa13817ab3344a30ce9",
+    "synthetic": "cc7e15259bec1441acb65d30f63ff83a3ecb7d9e62b6b4860db5ab5b91957497"
+  },
+  "measurement": "fresh spawned workers, wall clock, process CPU and OS peak RSS",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "python": "3.12.0 (tags/v3.12.0:0fb18b0, Oct  2 2023, 13:03:39) [MSC v.1935 64 bit (AMD64)]",
+  "python_version": [
+    3,
+    12,
+    0
+  ],
+  "reference": {
+    "archive_sha256": "bf1d82cdf3854fbb6071e9a1cdb9a0f0bd144ded7ff5071e78e945a12f174b82",
+    "commit": "5073eaf111cc3c46343046e6371371a9d0e8b9df",
+    "profile": "abp-core-0.11.1-network-v1",
+    "repository": "https://github.com/adblockplus/adblockpluscore"
+  },
+  "requested_scales": [
+    "synthetic",
+    "small"
+  ],
+  "scales": [
+    {
+      "attempt": 1,
+      "compile": {
+        "cpu_seconds": 0.0,
+        "peak_rss_bytes": 27197440,
+        "result": {
+          "compiler": "policy-dfa-v1",
+          "coverage_counts": {
+            "supported": 2
+          },
+          "profile": "abp-core-0.11.1-network-v1",
+          "sources": [
+            {
+              "name": "rules.abp",
+              "sha256": "650946b62e7492732f1a5e62b9187d10e96f7f0fbf8620c7de22e241b44bb07c"
+            }
+          ],
+          "stats": {
+            "alphabet_classes": 22,
+            "cmax": 16,
+            "compile_seconds": 0.020559999999022693,
+            "construction_seconds": 0.004415100000187522,
+            "determinize_seconds": 0.0120876999990287,
+            "groups": 33,
+            "intermediate_transition_bytes": 11088,
+            "minimize_seconds": 0.004057100000864011,
+            "nfa_states": 142,
+            "outmax": 5,
+            "q": 27,
+            "raw_q": 63,
+            "transition_bytes": 4752
+          }
+        },
+        "status": "ok",
+        "wall_seconds": 0.024184500000046683
+      },
+      "compile_bounds": {
+        "max_dfa": null,
+        "max_nfa": null,
+        "seconds": null
+      },
+      "coverage": {
+        "supported": 2
+      },
+      "dfa_mismatches": 0,
+      "largest_input_forecast": {
+        "base_transfers": 328,
+        "gdfa_bytes": 181548,
+        "ot_plain_bundle_bytes": 5541888,
+        "server_row_bytes": 4428
+      },
+      "name": "synthetic",
+      "network_rules": 2,
+      "platform": "Windows-10-10.0.19045-SP0",
+      "python": "3.12.0 (tags/v3.12.0:0fb18b0, Oct  2 2023, 13:03:39) [MSC v.1935 64 bit (AMD64)]",
+      "reference_cases": 3,
+      "reference_seconds": 0.05663780000031693,
+      "regex_failures": 0,
+      "resource_check": "ok",
+      "secure": [
+        {
+          "client": {
+            "cpu_seconds": 0.09375,
+            "peak_rss_bytes": 31576064,
+            "result": {
+              "decision": 1,
+              "decode_seconds": 0.0025009000000864035,
+              "metrics": {
+                "base_transfers": 312,
+                "received_bytes": 5465828,
+                "received_frames": 15,
+                "scalar_multiplications": 624,
+                "sent_bytes": 10107,
+                "sent_frames": 3
+              },
+              "n": 39,
+              "online_seconds": 5.28471030000037,
+              "ot_seconds": 5.267422299999453,
+              "prefetch_seconds": 0.014786800000365474,
+              "session": "0075c0e36f4beac88b8def6a869378bf"
+            },
+            "status": "ok",
+            "wall_seconds": 5.290615299998535
+          },
+          "disk_bytes": 5631682,
+          "expected": 1,
+          "fresh_request_wall_seconds": 5.904952999999296,
+          "n": 39,
+          "prepare": {
+            "cpu_seconds": 0.21875,
+            "peak_rss_bytes": 26554368,
+            "result": {
+              "params": {
+                "cmax": 16,
+                "k": 128,
+                "n": 39,
+                "outmax": 5,
+                "q": 27
+              },
+              "session": "0075c0e36f4beac88b8def6a869378bf"
+            },
+            "status": "ok",
+            "wall_seconds": 0.2271749000010459
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://b/",
+            "resource_type": "image",
+            "url": "https://a/ad"
+          },
+          "server": {
+            "cpu_seconds": 5.125,
+            "peak_rss_bytes": 31903744,
+            "result": {
+              "metrics": {
+                "base_transfers": 312,
+                "received_bytes": 10107,
+                "received_frames": 3,
+                "scalar_multiplications": 321,
+                "sent_bytes": 5465828,
+                "sent_frames": 15
+              },
+              "online_seconds": 5.269250100000136,
+              "ot_seconds": 5.255986100000882,
+              "prefetch_seconds": 0.013263999999253429,
+              "session": "0075c0e36f4beac88b8def6a869378bf"
+            },
+            "status": "ok",
+            "wall_seconds": 5.396763000000647
+          },
+          "status": "ok"
+        },
+        {
+          "client": {
+            "cpu_seconds": 0.15625,
+            "peak_rss_bytes": 32436224,
+            "result": {
+              "decision": 2,
+              "decode_seconds": 0.0026371000003564404,
+              "metrics": {
+                "base_transfers": 328,
+                "received_bytes": 5746101,
+                "received_frames": 16,
+                "scalar_multiplications": 656,
+                "sent_bytes": 10619,
+                "sent_frames": 3
+              },
+              "n": 41,
+              "online_seconds": 5.56853079999928,
+              "ot_seconds": 5.546064500000284,
+              "prefetch_seconds": 0.019829099999697064,
+              "session": "c5cc1be64e86f1c745327fb83642c553"
+            },
+            "status": "ok",
+            "wall_seconds": 5.573066799999651
+          },
+          "disk_bytes": 5919730,
+          "expected": 2,
+          "fresh_request_wall_seconds": 6.1981322999999975,
+          "n": 41,
+          "prepare": {
+            "cpu_seconds": 0.234375,
+            "peak_rss_bytes": 26681344,
+            "result": {
+              "params": {
+                "cmax": 16,
+                "k": 128,
+                "n": 41,
+                "outmax": 5,
+                "q": 27
+              },
+              "session": "c5cc1be64e86f1c745327fb83642c553"
+            },
+            "status": "ok",
+            "wall_seconds": 0.23848009999892383
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://b/",
+            "resource_type": "image",
+            "url": "https://a/adok"
+          },
+          "server": {
+            "cpu_seconds": 5.296875,
+            "peak_rss_bytes": 33153024,
+            "result": {
+              "metrics": {
+                "base_transfers": 328,
+                "received_bytes": 10619,
+                "received_frames": 3,
+                "scalar_multiplications": 337,
+                "sent_bytes": 5746101,
+                "sent_frames": 16
+              },
+              "online_seconds": 5.5457329000000755,
+              "ot_seconds": 5.5276936999998725,
+              "prefetch_seconds": 0.018039200000202982,
+              "session": "c5cc1be64e86f1c745327fb83642c553"
+            },
+            "status": "ok",
+            "wall_seconds": 5.672874400001092
+          },
+          "status": "ok"
+        },
+        {
+          "client": {
+            "cpu_seconds": 0.171875,
+            "peak_rss_bytes": 32509952,
+            "result": {
+              "decision": 0,
+              "decode_seconds": 0.0026978999994753394,
+              "metrics": {
+                "base_transfers": 312,
+                "received_bytes": 5465828,
+                "received_frames": 15,
+                "scalar_multiplications": 624,
+                "sent_bytes": 10107,
+                "sent_frames": 3
+              },
+              "n": 39,
+              "online_seconds": 5.177529599999616,
+              "ot_seconds": 5.158472099999926,
+              "prefetch_seconds": 0.016359400000510504,
+              "session": "00a9429363f958d42fe05ddf0c4cb042"
+            },
+            "status": "ok",
+            "wall_seconds": 5.1821471999992355
+          },
+          "disk_bytes": 5631682,
+          "expected": 0,
+          "fresh_request_wall_seconds": 5.84737849999874,
+          "n": 39,
+          "prepare": {
+            "cpu_seconds": 0.234375,
+            "peak_rss_bytes": 26619904,
+            "result": {
+              "params": {
+                "cmax": 16,
+                "k": 128,
+                "n": 39,
+                "outmax": 5,
+                "q": 27
+              },
+              "session": "00a9429363f958d42fe05ddf0c4cb042"
+            },
+            "status": "ok",
+            "wall_seconds": 0.23871630000030564
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://b/",
+            "resource_type": "image",
+            "url": "https://a/xx"
+          },
+          "server": {
+            "cpu_seconds": 4.96875,
+            "peak_rss_bytes": 33099776,
+            "result": {
+              "metrics": {
+                "base_transfers": 312,
+                "received_bytes": 10107,
+                "received_frames": 3,
+                "scalar_multiplications": 321,
+                "sent_bytes": 5465828,
+                "sent_frames": 15
+              },
+              "online_seconds": 5.161216599999534,
+              "ot_seconds": 5.147643899999821,
+              "prefetch_seconds": 0.013572699999713222,
+              "session": "00a9429363f958d42fe05ddf0c4cb042"
+            },
+            "status": "ok",
+            "wall_seconds": 5.301357800000915
+          },
+          "status": "ok"
+        }
+      ],
+      "source_sha256": "650946b62e7492732f1a5e62b9187d10e96f7f0fbf8620c7de22e241b44bb07c",
+      "status": "ok",
+      "verdict_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1
+      }
+    },
+    {
+      "attempt": 1,
+      "compile": {
+        "cpu_seconds": 0.015625,
+        "peak_rss_bytes": 27385856,
+        "result": {
+          "compiler": "policy-dfa-v1",
+          "coverage_counts": {
+            "supported": 2
+          },
+          "profile": "abp-core-0.11.1-network-v1",
+          "sources": [
+            {
+              "name": "rules.abp",
+              "sha256": "434b42557c5101cacc0010857f18e18003db054d494f326723b296312a7480e9"
+            }
+          ],
+          "stats": {
+            "alphabet_classes": 37,
+            "cmax": 29,
+            "compile_seconds": 0.029035399998974754,
+            "construction_seconds": 0.005175599999347469,
+            "determinize_seconds": 0.01467650000085996,
+            "groups": 57,
+            "intermediate_transition_bytes": 28712,
+            "minimize_seconds": 0.009183099999063415,
+            "nfa_states": 204,
+            "outmax": 7,
+            "q": 48,
+            "raw_q": 97,
+            "transition_bytes": 14208
+          }
+        },
+        "status": "ok",
+        "wall_seconds": 0.03340269999898737
+      },
+      "compile_bounds": {
+        "max_dfa": null,
+        "max_nfa": null,
+        "seconds": null
+      },
+      "coverage": {
+        "supported": 2
+      },
+      "dfa_mismatches": 0,
+      "largest_input_forecast": {
+        "base_transfers": 712,
+        "gdfa_bytes": 982560,
+        "ot_plain_bundle_bytes": 21804288,
+        "server_row_bytes": 11040
+      },
+      "name": "small",
+      "network_rules": 2,
+      "platform": "Windows-10-10.0.19045-SP0",
+      "python": "3.12.0 (tags/v3.12.0:0fb18b0, Oct  2 2023, 13:03:39) [MSC v.1935 64 bit (AMD64)]",
+      "reference_cases": 3,
+      "reference_seconds": 0.05599199999960547,
+      "regex_failures": 0,
+      "resource_check": "ok",
+      "secure": [
+        {
+          "client": {
+            "cpu_seconds": 0.265625,
+            "peak_rss_bytes": 31657984,
+            "result": {
+              "decision": 1,
+              "decode_seconds": 0.008665100000143866,
+              "metrics": {
+                "base_transfers": 616,
+                "received_bytes": 19756729,
+                "received_frames": 32,
+                "scalar_multiplications": 1232,
+                "sent_bytes": 19917,
+                "sent_frames": 5
+              },
+              "n": 77,
+              "online_seconds": 17.560662100000627,
+              "ot_seconds": 17.534261999999217,
+              "prefetch_seconds": 0.01773490000050515,
+              "session": "7651fe4faa97359d0e092fbdea110c37"
+            },
+            "status": "ok",
+            "wall_seconds": 17.565502299999935
+          },
+          "disk_bytes": 20579293,
+          "expected": 1,
+          "fresh_request_wall_seconds": 18.814655199999834,
+          "n": 77,
+          "prepare": {
+            "cpu_seconds": 0.8125,
+            "peak_rss_bytes": 26636288,
+            "result": {
+              "params": {
+                "cmax": 29,
+                "k": 128,
+                "n": 77,
+                "outmax": 7,
+                "q": 48
+              },
+              "session": "7651fe4faa97359d0e092fbdea110c37"
+            },
+            "status": "ok",
+            "wall_seconds": 0.8538300999989588
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://site.example/",
+            "resource_type": "image",
+            "url": "https://0cf.io/ad"
+          },
+          "server": {
+            "cpu_seconds": 16.78125,
+            "peak_rss_bytes": 32493568,
+            "result": {
+              "metrics": {
+                "base_transfers": 616,
+                "received_bytes": 19917,
+                "received_frames": 5,
+                "scalar_multiplications": 631,
+                "sent_bytes": 19756729,
+                "sent_frames": 32
+              },
+              "online_seconds": 17.52032440000039,
+              "ot_seconds": 17.505478700000822,
+              "prefetch_seconds": 0.014845699999568751,
+              "session": "7651fe4faa97359d0e092fbdea110c37"
+            },
+            "status": "ok",
+            "wall_seconds": 17.65529020000031
+          },
+          "status": "ok"
+        },
+        {
+          "client": {
+            "cpu_seconds": 0.328125,
+            "peak_rss_bytes": 31596544,
+            "result": {
+              "decision": 2,
+              "decode_seconds": 0.008780000000115251,
+              "metrics": {
+                "base_transfers": 616,
+                "received_bytes": 19756729,
+                "received_frames": 32,
+                "scalar_multiplications": 1232,
+                "sent_bytes": 19917,
+                "sent_frames": 5
+              },
+              "n": 77,
+              "online_seconds": 17.453850699999748,
+              "ot_seconds": 17.430202200001077,
+              "prefetch_seconds": 0.014868399999613757,
+              "session": "1929e2fbd4b6b3cd0aba145369c9b825"
+            },
+            "status": "ok",
+            "wall_seconds": 17.45987679999962
+          },
+          "disk_bytes": 20579293,
+          "expected": 2,
+          "fresh_request_wall_seconds": 18.74587740000061,
+          "n": 77,
+          "prepare": {
+            "cpu_seconds": 0.796875,
+            "peak_rss_bytes": 27000832,
+            "result": {
+              "params": {
+                "cmax": 29,
+                "k": 128,
+                "n": 77,
+                "outmax": 7,
+                "q": 48
+              },
+              "session": "1929e2fbd4b6b3cd0aba145369c9b825"
+            },
+            "status": "ok",
+            "wall_seconds": 0.879123000000618
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://site.example/",
+            "resource_type": "image",
+            "url": "https://adv.gg/ok"
+          },
+          "server": {
+            "cpu_seconds": 16.921875,
+            "peak_rss_bytes": 33349632,
+            "result": {
+              "metrics": {
+                "base_transfers": 616,
+                "received_bytes": 19917,
+                "received_frames": 5,
+                "scalar_multiplications": 631,
+                "sent_bytes": 19756729,
+                "sent_frames": 32
+              },
+              "online_seconds": 17.415970600000946,
+              "ot_seconds": 17.404055799999696,
+              "prefetch_seconds": 0.011914800001250114,
+              "session": "1929e2fbd4b6b3cd0aba145369c9b825"
+            },
+            "status": "ok",
+            "wall_seconds": 17.54796709999937
+          },
+          "status": "ok"
+        },
+        {
+          "client": {
+            "cpu_seconds": 0.390625,
+            "peak_rss_bytes": 31780864,
+            "result": {
+              "decision": 0,
+              "decode_seconds": 0.01019819999964966,
+              "metrics": {
+                "base_transfers": 712,
+                "received_bytes": 22835669,
+                "received_frames": 37,
+                "scalar_multiplications": 1424,
+                "sent_bytes": 23030,
+                "sent_frames": 6
+              },
+              "n": 89,
+              "online_seconds": 20.504099699999642,
+              "ot_seconds": 20.475784099999146,
+              "prefetch_seconds": 0.01811720000114292,
+              "session": "ea16738c1bc8efefe57229137433da15"
+            },
+            "status": "ok",
+            "wall_seconds": 20.508901600000172
+          },
+          "disk_bytes": 23784153,
+          "expected": 0,
+          "fresh_request_wall_seconds": 21.889965599999414,
+          "n": 89,
+          "prepare": {
+            "cpu_seconds": 0.96875,
+            "peak_rss_bytes": 27242496,
+            "result": {
+              "params": {
+                "cmax": 29,
+                "k": 128,
+                "n": 89,
+                "outmax": 7,
+                "q": 48
+              },
+              "session": "ea16738c1bc8efefe57229137433da15"
+            },
+            "status": "ok",
+            "wall_seconds": 0.9870549000006577
+          },
+          "request": {
+            "ancestors": [],
+            "document_url": "https://site.example/",
+            "resource_type": "image",
+            "url": "https://clean.invalid/control"
+          },
+          "server": {
+            "cpu_seconds": 19.546875,
+            "peak_rss_bytes": 33603584,
+            "result": {
+              "metrics": {
+                "base_transfers": 712,
+                "received_bytes": 23030,
+                "received_frames": 6,
+                "scalar_multiplications": 730,
+                "sent_bytes": 22835669,
+                "sent_frames": 37
+              },
+              "online_seconds": 20.47142359999998,
+              "ot_seconds": 20.456758000000264,
+              "prefetch_seconds": 0.014665599999716505,
+              "session": "ea16738c1bc8efefe57229137433da15"
+            },
+            "status": "ok",
+            "wall_seconds": 20.60397279999961
+          },
+          "status": "ok"
+        }
+      ],
+      "source_sha256": "434b42557c5101cacc0010857f18e18003db054d494f326723b296312a7480e9",
+      "status": "ok",
+      "verdict_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1
+      }
+    }
+  ],
+  "secure_scales": [
+    "synthetic",
+    "small"
+  ],
+  "secure_selection": "first three cases per requested successful scale",
+  "snapshot_sha256": "2888c230ef758e3c5c73a867376ed379d12cd2e9d9b94551634fc60dc1a05f34",
+  "suite": "NP-ED25519-SHA256-v1"
+}

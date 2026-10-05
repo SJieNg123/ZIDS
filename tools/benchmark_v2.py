@@ -10,12 +10,13 @@ import platform
 import queue as queue_module
 import subprocess
 import sys
+import tempfile
 from time import perf_counter, process_time
 
 from src.zids_v2 import OT_SUITE
 from src.zids_v2.artifacts import prepare, read_json, write_json
 from src.zids_v2.codec import Params
-from src.zids_v2.compiler import compile_sources, policy_dict, policy_dfa, regex_coverage
+from src.zids_v2.compiler import compile_sources, regex_coverage
 from src.zids_v2.context import RequestContext
 from src.zids_v2.contracts import ProtocolError
 from src.zids_v2.dfa import group_characters
@@ -23,8 +24,24 @@ from src.zids_v2.easylist import parse_sources
 from src.zids_v2.measure import peak_rss_bytes
 from src.zids_v2.protocol import serve, receive
 from src.zids_v2.policy_io import open_policy, save_policy
+from src.zids_v2.local_state import atomic_json, exclusive_lock
+from tools.cases_v2 import rule_cases
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def publish_bytes(path, data):
+    """Publish a complete input/source snapshot before a worker can use it."""
+    fd, temporary = tempfile.mkstemp(prefix=path.name+'.',suffix='.tmp',dir=path.parent)
+    try:
+        with os.fdopen(fd,'wb') as file:
+            file.write(data)
+            file.flush()
+            os.fsync(file.fileno())
+        os.replace(temporary,path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
 
 
 def worker(operation, payload, result, ready=None):
@@ -34,7 +51,7 @@ def worker(operation, payload, result, ready=None):
             text = Path(payload['rules']).read_text(encoding='utf8')
             bounds = dict(payload.get('bounds',{}))
             bounds.setdefault('checkpoint',str(Path(payload['output'])/'compiler.sqlite'))
-            with (Path(payload['output'])/'compile-progress.jsonl').open('x',encoding='utf8',buffering=1) as log:
+            with (Path(payload['output'])/'compile-progress.jsonl').open('a' if payload.get('resume') else 'x',encoding='utf8',buffering=1) as log:
                 def progress(value):
                     event = dict(value, worker_pid=os.getpid(), wall_seconds=perf_counter()-wall,
                                  peak_rss_bytes=peak_rss_bytes())
@@ -43,7 +60,7 @@ def worker(operation, payload, result, ready=None):
                 dfa, provenance, coverage = compile_sources([(Path(payload['rules']).name,text)],
                                                             progress=progress, **bounds)
                 progress({'stage':'policy_write','q':dfa.q})
-            save_policy(Path(payload['output'])/'policy.bin',dfa,provenance)
+            save_policy(Path(payload['output'])/'policy.bin',dfa,provenance,exclusive=not payload.get('resume',False))
             value = provenance
         elif operation == 'prepare':
             with open_policy(payload['policy']) as (dfa,provenance):
@@ -104,10 +121,12 @@ def reference(rules, contexts):
     started = perf_counter()
     data = {'rules':[r.text for r in rules],'requests':[asdict(c) for c in contexts]}
     proc = subprocess.run(['node',str(ROOT/'tools/reference_matcher.cjs')],input=json.dumps(data),
-                          encoding='utf8',text=True,capture_output=True,check=True,timeout=120,cwd=ROOT)
+                          encoding='utf8',text=True,capture_output=True,check=True,cwd=ROOT)
     value = json.loads(proc.stdout)
     if value['diagnostics']:
         raise ProtocolError('reference rejected a declared supported rule')
+    if len(value['outputs']) != len(contexts):
+        raise ProtocolError('reference returned an incomplete result')
     return [v['decision'] for v in value['outputs']], perf_counter()-started
 
 
@@ -209,10 +228,21 @@ def check_compiled(directory, contexts, expected, secure):
         return record
 
 
-def run(output, *, scales=None, secure_scales=('synthetic','small'), seconds=None, max_nfa=None, max_dfa=None):
+def run(output, *, scales=None, secure_scales=('synthetic','small'), seconds=None, max_nfa=None, max_dfa=None,
+        resume=False):
     output = Path(output)
-    output.mkdir(parents=True,exist_ok=False)
+    if resume and secure_scales:
+        raise ProtocolError('resume supports compilation only, use fresh sessions for private evaluations')
+    if resume and not (output/'report.json').exists():
+        raise ProtocolError('no benchmark report to resume')
+    output.mkdir(parents=True,exist_ok=resume)
+    with exclusive_lock(output/'benchmark.lock'):
+        return run_locked(output,scales,secure_scales,seconds,max_nfa,max_dfa,resume)
+
+
+def run_locked(output, scales, secure_scales, seconds, max_nfa, max_dfa, resume):
     report = {'suite':OT_SUITE,'platform':platform.platform(),'python':sys.version,
+              'python_version':list(sys.version_info[:3]),
               'reference':read_json(ROOT/'tools/reference-lock.json'),'scales':[],
               'measurement':'fresh spawned workers, wall clock, process CPU and OS peak RSS',
               'secure_selection':'first three cases per requested successful scale',
@@ -221,53 +251,104 @@ def run(output, *, scales=None, secure_scales=('synthetic','small'), seconds=Non
     report['compile_bounds'] = {'seconds':seconds,'max_nfa':max_nfa,'max_dfa':max_dfa}
     report['implementation_sha256'] = {str(p.relative_to(ROOT)).replace('\\','/'):
         hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((ROOT/'src/zids_v2').glob('*.py'))}
-    write_json(output/'report.json',report)
+    report['harness_sha256'] = {name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in
+                               ('tools/benchmark_v2.py','tools/cases_v2.py','tools/reference_matcher.cjs')}
+    full_text = (ROOT/'rules/easylist.txt').read_text(encoding='utf8')
+    report['snapshot_sha256'] = hashlib.sha256(full_text.encode('utf8')).hexdigest()
+    inputs = [entry for entry in fixtures(full_text) if not scales or entry[0] in scales]
+    report['inputs_sha256'] = {name:hashlib.sha256(json.dumps(
+        [text,[asdict(c) for c in contexts]],sort_keys=True).encode('utf8')).hexdigest()
+        for name,text,contexts in inputs}
+    report['data_sha256'] = {name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in
+                            ('src/zids_v2/data/public_suffixes.json','requirements-v2.txt')}
+    if resume:
+        previous = read_json(output/'report.json',limit=None)
+        for field in ('suite','reference','implementation_sha256','harness_sha256','snapshot_sha256',
+                      'inputs_sha256','data_sha256','python_version','requested_scales','secure_scales'):
+            if previous.get(field) != report[field]:
+                raise ProtocolError('benchmark resume identity mismatch: '+field)
+        report['scales'] = previous['scales']
+    atomic_json(output/'report.json',report)
     for relative in list(report['implementation_sha256'])+['requirements-v2.txt','tools/benchmark_v2.py',
+                        'tools/cases_v2.py','tools/jobs_v2.py',
                         'tools/reference_matcher.cjs','tools/reference-lock.json','tools/setup_reference.py',
                         'src/zids_v2/data/public_suffixes.json','src/zids_v2/data/ABP-LICENSE.txt',
                         'src/zids_v2/data/NOTICE.md']:
         target = output/'implementation'/relative
         target.parent.mkdir(parents=True,exist_ok=True)
-        target.write_bytes((ROOT/relative).read_bytes())
-    full_text = (ROOT/'rules/easylist.txt').read_text(encoding='utf8')
-    for name, text, contexts in fixtures(full_text):
-        if scales and name not in scales:
-            continue
-        print(json.dumps({'scale':name,'stage':'coverage'}),flush=True)
+        if not target.exists():
+            publish_bytes(target,(ROOT/relative).read_bytes())
+    for name, text, contexts in inputs:
         directory = output/name
-        directory.mkdir()
+        directory.mkdir(exist_ok=resume)
         source = directory/'rules.abp'
-        source.write_text(text,encoding='utf8',newline='\n')
+        if source.exists():
+            if source.read_text(encoding='utf8') != text:
+                raise ProtocolError('benchmark rule text changed')
+        else:
+            publish_bytes(source,text.encode('utf8'))
+        if resume and (directory/'record.json').exists():
+            completed = read_json(directory/'record.json',limit=None)
+            if completed['status'] == 'ok':
+                with open_policy(directory/'policy.bin') as (_,provenance):
+                    if provenance['sources'][0]['sha256'] != completed['source_sha256']:
+                        raise ProtocolError('completed policy source binding changed')
+                report['scales'] = [r for r in report['scales'] if r['name']!=name]+[completed]
+                continue
+        print(json.dumps({'scale':name,'stage':'coverage'}),flush=True)
+        attempt = max((int(p.stem.split('-')[1]) for p in directory.glob('attempt-*.json')),default=0)+1
+        attempt_path = directory/f'attempt-{attempt:04d}.json'
+        atomic_json(attempt_path,{'name':name,'status':'running','attempt':attempt,
+                                 'compile_bounds':report['compile_bounds']})
+        report['active_scale'] = name
+        atomic_json(output/'report.json',report)
         rule_list, coverage = parse_sources([(name,text)])
+        generation = None
+        if name in ('profile2000','full'):
+            generated, generation = rule_cases(rule_list)
+            contexts += [RequestContext.from_dict(row['context']) for row in generated]
+            if not (directory/'generated-cases.json').exists():
+                atomic_json(directory/'generated-cases.json',{'coverage':generation,'cases':generated})
         failures = regex_coverage(rule_list)
         coverage['regex_failures'] = failures
-        write_json(directory/'coverage.json',coverage)
+        if not (directory/'coverage.json').exists():
+            atomic_json(directory/'coverage.json',coverage)
         expected, oracle_seconds = reference(rule_list,contexts)
         truth = [{'context':asdict(c),'expected':e} for c,e in zip(contexts,expected)]
-        write_json(directory/'ground_truth.json',truth)
-        record = {'name':name,'source_sha256':hashlib.sha256(text.encode('utf8')).hexdigest(),
+        if not (directory/'ground_truth.json').exists():
+            atomic_json(directory/'ground_truth.json',truth)
+        record = {'name':name,'attempt':attempt,'compile_bounds':report['compile_bounds'],
+                  'platform':report['platform'],'python':report['python'],
+                  'source_sha256':hashlib.sha256(text.encode('utf8')).hexdigest(),
                   'network_rules':len(rule_list),'coverage':coverage['counts'],
                   'regex_failures':len(failures),'reference_cases':len(contexts),
                   'reference_seconds':oracle_seconds,'verdict_counts':{str(i):expected.count(i) for i in range(3)}}
+        if generation is not None:
+            record['generated_coverage'] = {k:v for k,v in generation.items() if k != 'unwitnessed'}
+            record['generated_coverage']['unwitnessed_rules'] = len(generation['unwitnessed'])
         print(json.dumps({'scale':name,'stage':'compile'}),flush=True)
         compiled = isolated('compile',{'rules':str(source),'output':str(directory),
-                                      'bounds':report['compile_bounds']},
+                                      'bounds':report['compile_bounds'],'resume':resume},
                             timeout=None if seconds is None else seconds+180)
         record['compile'] = compiled
         if compiled['status'] == 'ok':
             record.update(check_compiled(directory,contexts,expected,name in secure_scales))
         else:
             record['status'] = 'compile_limit' if compiled['error_type']=='CompileLimit' else 'failed'
-        report['scales'].append(record)
-        write_json(directory/'record.json',record)
-        write_json(output/'report.json',report,exclusive=False)
+        atomic_json(attempt_path,record)
+        report['scales'] = [r for r in report['scales'] if r['name']!=name]+[record]
+        atomic_json(directory/'record.json',record)
+        atomic_json(output/'report.json',report)
         print(json.dumps({'scale':name,'status':record['status']}),flush=True)
+    report.pop('active_scale',None)
+    atomic_json(output/'report.json',report)
     return report
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output',required=True)
+    parser.add_argument('--resume',action='store_true',help='resume compilation-only work with matching sources')
     parser.add_argument('--scales',nargs='+',choices=['synthetic','small','context200','profile2000','full'])
     parser.add_argument('--secure-scales',nargs='*',default=['synthetic','small'])
     parser.add_argument('--seconds',type=float,help='optional compiler time cap, default unlimited')
@@ -275,8 +356,8 @@ def main():
     parser.add_argument('--max-dfa',type=int,help='optional DFA state cap, default unlimited')
     args = parser.parse_args()
     result = run(args.output,scales=args.scales,secure_scales=args.secure_scales,seconds=args.seconds,
-                 max_nfa=args.max_nfa,max_dfa=args.max_dfa)
-    return 2 if any(r['status']=='failed' for r in result['scales']) else 0
+                 max_nfa=args.max_nfa,max_dfa=args.max_dfa,resume=args.resume)
+    return 2 if any(r['status']!='ok' for r in result['scales']) else 0
 
 
 if __name__ == '__main__':

@@ -1,4 +1,46 @@
-# v2 validation and capacity, 2026-10-04
+# v2 validation and capacity
+
+## 2026-10-05 workstation preparation validation
+
+The complete Windows Python 3.12.0 suite passed 63 tests in 96.398 s, and the
+native group smoke check passed. Coverage includes abrupt process checkpoint
+recovery, benchmark resume, mmap policies over 128 MiB, GDFA rows over 64 MiB,
+option-fragment transport over 64 MiB and rejection of malformed fragments.
+The large transport test isolates framing, it does not perform large cryptographic
+evaluation. Compiler state/time and aggregate artifact byte caps remain disabled
+by default. Canonical field widths and bounded individual frames still apply.
+
+A detached synthetic/small benchmark succeeded with six fresh base-OT/GDFA
+sessions. Q remained 27 and 48 respectively. The synthetic request totals were
+5.905, 6.198 and 5.847 s, and the small request totals were 18.815, 18.746 and
+21.890 s. Every decision agreed with the independent oracle, and both roles
+recorded exactly 8n bit transfers. These are functional samples, not throughput
+statistics. Canonical language digests and protocol-source hashes were verified
+against this measurement run. Reports and their digest index are in
+`benchmarks/v2/2026-10-05/`.
+
+The frozen 200-rule fixture adds 801 generated cases, all agreeing between the
+independent ABP oracle and compiled DFA. All 200 rules have an automatically
+constructed isolated-rule witness. Final full-policy labels are 597 BLOCK,
+1 ALLOW and 203 NOMATCH. Existing 406 fixture cases remain in the tests.
+
+The full snapshot generated 187,782 candidates and the independent matcher
+returned 137,032 BLOCK, 900 ALLOW and 49,850 NOMATCH labels. Automatic witnesses
+were found for 46,901 of 47,154 supported rules. The remaining 253 rules are
+explicitly listed by the generator. These cases have not been compared with a
+completed full-snapshot DFA. Automatic witnesses and mutations do not prove
+complete semantic equivalence.
+
+An earlier unlimited 2,000-rule attempt reached 17,996,995 discovered raw DFA
+states, with 13,044,662 processed and about 25.3 GiB peak working-set RSS, before
+the worker/controller disappeared. No final DFA or exit/OOM record was produced.
+This does not establish the minimized Q or a proven hardware ceiling. That run
+predated checkpoints and cannot be resumed. The new implementation still needs
+2,000-rule and full-snapshot acceptance measurements on the workstation. Linux
+CI is configured, but its execution has not been observed in this workspace.
+See [WORKSTATION.md](WORKSTATION.md) for detached runs and recovery commands.
+
+## Historical bounded measurements, 2026-10-04
 
 Compiler execution policy changed on 2026-10-05 at the user's request. State and
 time caps, including the outer compile-worker timeout, are now disabled by

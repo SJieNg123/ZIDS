@@ -1,0 +1,35 @@
+{
+  "cases": [
+    {
+      "generated_cases": 801,
+      "oracle_seconds": 0.06818940000084694,
+      "rules": 200,
+      "source": "tests_v2/fixtures/context200.abp",
+      "total_seconds": 0.11491399999977148,
+      "unwitnessed_rules": 0,
+      "verdict_counts": {
+        "0": 203,
+        "1": 597,
+        "2": 1
+      },
+      "witnessed_rules": 200
+    },
+    {
+      "generated_cases": 187782,
+      "oracle_seconds": 1.396980400000757,
+      "rules": 47154,
+      "source": "rules/easylist.txt",
+      "total_seconds": 17.484629599999607,
+      "unwitnessed_rules": 253,
+      "verdict_counts": {
+        "0": 49850,
+        "1": 137032,
+        "2": 900
+      },
+      "witnessed_rules": 46901
+    }
+  ],
+  "generator_sha256": "e106f97bd68b50e79548970d8520cdfd242ff108e8fd2cdfb8e7bf38b5e353ff",
+  "measurement": "Independent ABP labels for generated candidates, no full DFA comparison",
+  "snapshot_sha256": "2888c230ef758e3c5c73a867376ed379d12cd2e9d9b94551634fc60dc1a05f34"
+}
