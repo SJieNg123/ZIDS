@@ -19,6 +19,7 @@ class Kind(IntEnum):
     MANIFEST = 5
     MATRIX = 6
     INITIAL = 7
+    OPTIONS_FRAGMENT = 8
 
 
 @dataclass

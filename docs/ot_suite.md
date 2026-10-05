@@ -46,8 +46,14 @@ All 256 messages at each position have one public length. Sender and receiver AP
 | Hash | SHAKE256 base-OT RO and HMAC-SHA256 reduction PRF |
 | Extension | Explicitly absent, 8n public-key bit transfers |
 | OT preprocessing | Absent, base OT takes place online |
-| Schedule | Three one-way messages per batch, setup may precede client query |
+| Schedule | Base OT setup/query/response, then all option ciphertexts in fixed public fragments |
 | Output length | Chosen messages are complete padded group-key bundles |
 | Security claim | CDH/RO base OT plus PRF reduction under the stated static-corruption model |
 
 Native primitive smoke command: `.venv-v2/Scripts/python.exe -B tools/check_v2_crypto.py` on Windows, `.venv-v2/bin/python -B tools/check_v2_crypto.py` on Linux. Windows is measured locally. Linux support is a portability target until its CI job actually runs, not a completed measurement.
+
+Large-message transport slices the same PRF output, preserving the total message
+length, option index and HMAC block counters. It does not introduce wrapping
+keys, OT extension or another reduction. See `protocol_spec.md` for fragment
+ordering and spooling. Individual OT message lengths fit the existing uint32
+context field. Aggregate file sizes have no default cap.

@@ -51,13 +51,13 @@ class Params:
                 "base_transfers": 8*self.n,
                 "server_row_bytes": self.q*self.cell_bytes}
 
-    def enforce_limits(self, *, max_matrix_bytes=1024**3, max_row_bytes=64*1024**2,
-                       max_ot_bytes=1024**3):
-        if self.matrix_bytes > max_matrix_bytes:
+    def enforce_limits(self, *, max_matrix_bytes=None, max_row_bytes=None,
+                       max_ot_bytes=None):
+        if max_matrix_bytes is not None and self.matrix_bytes > max_matrix_bytes:
             raise ProtocolError(f"GDFA resource limit: {self.matrix_bytes} bytes")
-        if self.q*self.cell_bytes > max_row_bytes:
+        if max_row_bytes is not None and self.q*self.cell_bytes > max_row_bytes:
             raise ProtocolError("GDFA row resource limit")
-        if self.n*256*self.bundle_bytes > max_ot_bytes:
+        if max_ot_bytes is not None and self.n*256*self.bundle_bytes > max_ot_bytes:
             raise ProtocolError("OT bundle resource limit")
 
 

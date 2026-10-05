@@ -30,7 +30,7 @@ class OTContext:
             raise ProtocolError("unsupported suite, OT extension is not supported")
         bounded_int(self.batch, 0, 2**64 - 1, "batch")
         bounded_int(self.count, 1, 65536, "count")
-        bounded_int(self.message_bytes, 1, 8 * 1024 * 1024, "message length")
+        bounded_int(self.message_bytes, 1, 2**32-1, "message length")
 
     def encode(self):
         return (self.suite.encode("ascii") + b"\x00" + self.session

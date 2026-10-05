@@ -3,7 +3,7 @@ from dataclasses import asdict
 import json
 import secrets
 
-from .codec import (Params, random_permutation, pack_entries, unpack_entries,
+from .codec import (Params, random_permutation, inverse_permutation, pack_entries, unpack_entries,
                     transition_entry, terminal_entry, decode_entry, pack_keys, unpack_keys)
 from .contracts import Once, ProtocolError, bounded_int
 from .crypto import fields, prf, xor
@@ -36,7 +36,21 @@ class Garbler:
         self._once = Once()
 
     def rows(self):
+        """Compatibility adapter. Production preparation uses blocks directly."""
+        matrix, bundles = bytearray(), []
+        for position, kind, data in self.blocks():
+            if kind == 'matrix':
+                matrix.extend(data)
+            else:
+                bundles.append(data)
+                if len(bundles) == 256:
+                    yield position,bytes(matrix),tuple(bundles)
+                    matrix, bundles = bytearray(), []
+
+    def blocks(self, chunk_bytes=1024*1024):
         self._once.consume()
+        if chunk_bytes < 1:
+            raise ValueError('chunk size must be positive')
         p = self.params
         permutation, pads = self._permutation, self._pads
         self._permutation, self._pads = (), ()
@@ -45,9 +59,9 @@ class Garbler:
             next_permutation = random_permutation(p.q) if not terminal else ()
             next_pads = tuple(secrets.token_bytes(16) for _ in range(p.q)) if not terminal else ()
             keys = [secrets.randbits(p.width) for _ in self.groups.catalog]
-            cells = [None]*p.q
-            for original, edges in enumerate(self.groups.edges):
-                current = permutation[original]
+            cells = bytearray()
+            for current, original in enumerate(inverse_permutation(permutation)):
+                edges = self.groups.edges[original]
                 entries = []
                 for group, dest in edges:
                     if terminal:
@@ -58,15 +72,21 @@ class Garbler:
                     entries.append(entry ^ keys[group])
                 entries.extend(secrets.randbits(p.width) for _ in range(p.outmax-len(entries)))
                 secrets.SystemRandom().shuffle(entries)
-                cells[current] = xor(pack_entries(entries, p),
-                                     mask_cell(pads[current], self.session, position, current, p))
-            bundles = []
+                cell = xor(pack_entries(entries, p),
+                           mask_cell(pads[current], self.session, position, current, p))
+                for offset in range(0,len(cell),chunk_bytes):
+                    part = cell[offset:offset+chunk_bytes]
+                    if cells and len(cells)+len(part) > chunk_bytes:
+                        yield position,'matrix',bytes(cells)
+                        cells.clear()
+                    cells.extend(part)
+            if cells:
+                yield position,'matrix',bytes(cells)
             for groups in self.groups.containing:
                 selected = [keys[group] for group in groups]
                 selected.extend(secrets.randbits(p.width) for _ in range(p.cmax-len(selected)))
                 secrets.SystemRandom().shuffle(selected)
-                bundles.append(pack_keys(selected, p))
-            yield position, b"".join(cells), tuple(bundles)
+                yield position,'ot',pack_keys(selected,p)
             permutation, pads = next_permutation, next_pads
 
 

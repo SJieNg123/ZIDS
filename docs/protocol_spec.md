@@ -26,12 +26,31 @@ Use versioned length-prefixed binary frames with a fixed-size header containing 
 
 For each base-OT batch the message schedule is sender setup, receiver query, sender response. Batching does not change the number of public-key bit transfers. The final receiver result and any decoding error are local only. Whole public artifacts are prefetched, never fetched according to a DFA path.
 
+The bootstrap declares transport `base-ot-fragments-v1`. Each reduction table
+is sent in `OPTIONS_FRAGMENT` frames, including all 256 encrypted alternatives.
+Frame IDs increase across the entire transfer. Each payload binds the original
+OT batch and byte offset, and has a length determined only by public dimensions.
+Fragments carry at most 1 MiB of ciphertext. Truncation, duplication, wrong
+batch/offset and reordered fragments fail locally. Both peers must support this
+transport. The frame maximum remains 64 MiB, independently of total table size.
+The client spools the complete table before extracting its private selection.
+Selected bundles are spooled locally and the connection closes before GDFA
+decoding. Fragmentation adds no OT instances or receiver acknowledgements.
+
 Compiled policy can be reused. Garbling and OT records cannot. Session states are CREATED -> PREPARED -> RESERVED -> CONSUMED, with failure after reservation -> BURNED. Reservation must be atomic. Restart never makes a reserved session reusable. New input always requires a new session. Same-transcript retries cannot obtain a second choice. Public manifests contain only the stated leakage and ciphertext framing/digests. Private manifests bind source, compiler, policy, suite and session.
 
 ## Resource and implementation boundaries
 
 The new implementation lives in `src/zids_v2/` to prevent accidental imports of audited legacy crypto and to preserve the user's existing modified experiments. At CLI cutover, this package becomes the documented supported path. Legacy files are retained as historical experiments, not silently selected as fallbacks.
 
-Before allocation, estimate GDFA bytes as n*Q*ceil(outmax*w/8), bundle bytes as n*256*cmax*ceil(w/8), and base OT transfers as 8n. Enforce resource caps with explicit errors. Do not drop rules, shorten X or reuse garbling to meet caps.
+Before allocation, estimate GDFA bytes as n*Q*ceil(outmax*w/8), bundle bytes as n*256*cmax*ceil(w/8), and base OT transfers as 8n. Aggregate byte caps are opt-in. Default execution runs to completion or actual resource failure. Explicit caps produce errors without dropping rules, shortening X or reusing garbling.
+
+Preparation writes matrix cells in permuted row order through small buffers and
+emits one OT bundle at a time. It retains current/next pads and permutations,
+group keys and a single bundle, rather than a complete ciphertext row or table.
+The legacy `rows()` adapter still materializes one row for small direct callers.
+Private table readers used by the server fetch slices on demand. Reduction PRF
+slices retain the original total output length and block counter domain, so
+concatenation yields exactly the same ciphertext bytes as whole-message masking.
 
 Tests must cover n=1, all byte choices, cmax>1, non-identity permutations, non-byte-aligned layouts, malformed points/frames/entries, replay and cross-session mixing. End-to-end tests compare independent EasyList reference, plaintext policy DFA and private evaluation. Functional and attack regression tests are evidence of correctness, not a general security proof.

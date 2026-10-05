@@ -54,7 +54,13 @@ def ro_pad(shared, transcript, index, branch, length):
 
 
 def prf(key, domain, length):
+    return prf_slice(key,domain,length,0,length)
+
+
+def prf_slice(key, domain, length, offset, size):
+    if not 0 <= offset <= offset+size <= length:
+        raise ProtocolError('invalid PRF slice')
     prefix = fields(b"ZIDSv2/PRF-HMAC-SHA256", domain, length.to_bytes(8, "big"))
     blocks = (hmac.digest(key, prefix + i.to_bytes(8, "big"), "sha256")
-              for i in range((length + 31) // 32))
-    return b"".join(blocks)[:length]
+              for i in range(offset//32,(offset+size+31)//32))
+    return b"".join(blocks)[offset%32:offset%32+size]

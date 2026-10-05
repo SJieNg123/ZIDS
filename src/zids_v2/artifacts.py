@@ -5,6 +5,7 @@ import json
 import mmap
 import os
 from pathlib import Path
+from collections.abc import Sequence
 
 from . import OT_SUITE, VERSION
 from .codec import Params
@@ -78,8 +79,6 @@ def validate_public(manifest):
 def prepare(dfa, n, destination, *, provenance=None, limits=None):
     garbler = Garbler(dfa, n, limits=limits)
     p = garbler.params
-    if 256*p.bundle_bytes > 64*1024*1024-32:
-        raise ProtocolError('single OT table exceeds transfer bound')
     root = Path(destination)
     root.mkdir(parents=True, exist_ok=False, mode=0o700)
     public, private = root/'public', root/'private'
@@ -87,12 +86,12 @@ def prepare(dfa, n, destination, *, provenance=None, limits=None):
     private.mkdir(mode=0o700)
     matrix_hash, ot_hash = hashlib.sha256(), hashlib.sha256()
     with open(public/'matrix.bin', 'xb') as matrix, open(private/'ot_messages.bin', 'xb') as ot:
-        for _, row, bundles in garbler.rows():
-            matrix.write(row)
-            matrix_hash.update(row)
-            for bundle in bundles:
-                ot.write(bundle)
-                ot_hash.update(bundle)
+        for _, kind, data in garbler.blocks():
+            target, digest = (matrix,matrix_hash) if kind == 'matrix' else (ot,ot_hash)
+            for offset in range(0,len(data),1024*1024):
+                block = data[offset:offset+1024*1024]
+                target.write(block)
+                digest.update(block)
         for file in (matrix, ot):
             file.flush()
             os.fsync(file.fileno())
@@ -109,7 +108,31 @@ def prepare(dfa, n, destination, *, provenance=None, limits=None):
     return manifest
 
 
-def private_tables(directory, *, verify=True):
+class PrivateTable(Sequence):
+    def __init__(self, file, offset, message_size):
+        self.file, self.offset, self.message_size = file,offset,message_size
+
+    def __len__(self):
+        return 256
+
+    def chunk(self, option, offset, size):
+        if not 0 <= option < 256 or not 0 <= offset <= offset+size <= self.message_size:
+            raise ProtocolError('invalid private table slice')
+        self.file.seek(self.offset+option*self.message_size+offset)
+        data = self.file.read(size)
+        if len(data) != size:
+            raise ProtocolError('truncated private OT message')
+        return data
+
+    def __getitem__(self, option):
+        if isinstance(option,slice):
+            return tuple(self[i] for i in range(*option.indices(256)))
+        if not 0 <= option < 256:
+            raise IndexError(option)
+        return self.chunk(option,0,self.message_size)
+
+
+def private_tables(directory, *, verify=True, lazy=False):
     private = Path(directory)
     manifest = read_json(private/'manifest.json', limit=1024*1024)
     if type(manifest) is not dict or set(manifest) != {'public', 'provenance', 'ot_bytes', 'ot_sha256'}:
@@ -122,11 +145,9 @@ def private_tables(directory, *, verify=True):
     if verify and digest_file(path) != manifest['ot_sha256']:
         raise ProtocolError('private OT file digest mismatch')
     with open(path, 'rb') as file:
-        for _ in range(p.n):
-            data = file.read(256*p.bundle_bytes)
-            if len(data) != 256*p.bundle_bytes:
-                raise ProtocolError('truncated private OT file')
-            yield tuple(data[i:i+p.bundle_bytes] for i in range(0, len(data), p.bundle_bytes))
+        for position in range(p.n):
+            table = PrivateTable(file,position*256*p.bundle_bytes,p.bundle_bytes)
+            yield table if lazy else tuple(table)
 
 
 class MatrixReader:

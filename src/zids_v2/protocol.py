@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import socket
 import ssl
+import tempfile
 from time import perf_counter
 
 from .artifacts import MatrixReader, read_json, write_json, private_tables, validate_public
@@ -17,6 +18,7 @@ from .wire import Channel, Kind
 
 CHUNK_BYTES = 1024*1024
 BOOTSTRAP = OTContext(bytes(16), 0, 1, 1)
+TRANSPORT = 'base-ot-fragments-v1'
 
 
 def transport_context(host, *, server=False, cert=None, key=None, ca=None):
@@ -52,14 +54,14 @@ def serve_connection(connection, root, *, batch_size=16):
             raise ProtocolError('private and public session manifests differ')
         sid = bytes.fromhex(manifest['session'])
         context = OTContext(sid, 0, p.n, p.bundle_bytes)
-        envelope = {'manifest':manifest, 'batch_size':batch_size}
+        envelope = {'manifest':manifest, 'batch_size':batch_size, 'transport':TRANSPORT}
         wire.send(Kind.MANIFEST, BOOTSTRAP, json.dumps(envelope, sort_keys=True).encode('ascii'))
         with open(root/'public/matrix.bin', 'rb') as matrix:
             for chunk, offset in enumerate(range(0, p.matrix_bytes, CHUNK_BYTES)):
                 part = matrix.read(min(CHUNK_BYTES, p.matrix_bytes-offset))
                 wire.send(Kind.MATRIX, OTContext(sid,chunk,p.n,p.bundle_bytes), part)
         prepared = perf_counter()
-        backend.send(wire, private_tables(root/'private'), context)
+        backend.send(wire, private_tables(root/'private',lazy=True), context)
         finished = perf_counter()
         metrics = asdict(wire.metrics)
     return {'session':sid.hex(), 'metrics':metrics, 'prefetch_seconds':prepared-started,
@@ -99,7 +101,8 @@ def receive_connection(connection, request, destination):
         # Reuse the strict duplicate-field JSON parser and preserve the received data.
         (root/'bootstrap.json').write_bytes(raw)
         envelope = read_json(root/'bootstrap.json')
-        if type(envelope) is not dict or set(envelope) != {'manifest','batch_size'}:
+        if (type(envelope) is not dict or set(envelope) != {'manifest','batch_size','transport'}
+                or envelope['transport'] != TRANSPORT):
             raise ProtocolError('invalid bootstrap fields')
         manifest = envelope['manifest']
         p = validate_public(manifest)
@@ -115,14 +118,16 @@ def receive_connection(connection, request, destination):
                 matrix.write(wire.receive(Kind.MATRIX, OTContext(sid,chunk,p.n,p.bundle_bytes), size=size))
             matrix.flush()
             os.fsync(matrix.fileno())
-        with MatrixReader(root) as reader:
+        with MatrixReader(root) as reader, tempfile.SpooledTemporaryFile(max_size=1024*1024,mode='w+b') as selected:
             prefetched = perf_counter()
-            selected = BaseOTBackend(batch_size=batch_size).receive(wire, data, OTContext(sid,0,p.n,p.bundle_bytes))
+            BaseOTBackend(batch_size=batch_size).receive(wire,data,OTContext(sid,0,p.n,p.bundle_bytes),sink=selected.write)
             ot_finished = perf_counter()
             metrics = asdict(wire.metrics)
             # Close independently of the decision, before any path-dependent decoding.
             wire.close()
-            result = evaluate(p, sid, manifest['initial_state'], bytes.fromhex(manifest['initial_pad']), reader.cell, selected)
+            selected.seek(0)
+            bundles = iter(lambda:selected.read(p.bundle_bytes),b'')
+            result = evaluate(p,sid,manifest['initial_state'],bytes.fromhex(manifest['initial_pad']),reader.cell,bundles)
     return {'decision':result, 'session':sid.hex(), 'n':p.n, 'metrics':metrics,
             'prefetch_seconds':prefetched-started, 'ot_seconds':ot_finished-prefetched,
             'decode_seconds':perf_counter()-ot_finished, 'online_seconds':perf_counter()-started}

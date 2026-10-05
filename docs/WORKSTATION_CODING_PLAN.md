@@ -48,3 +48,12 @@ Step 4a implemented: atomic binary policy publication, complete-file SHA256,
 strict format validation, mmap loading and legacy JSON reading. CLI and benchmark
 use `policy.bin`. Eight policy/CLI/benchmark tests passed in 9.718 s, including a
 real file larger than 128 MiB, checksum corruption and fresh real-OT evaluation.
+
+Step 4b implemented: streaming matrix preparation, lazy private OT table slices,
+PRF slices with identical domains, fixed public ciphertext fragments and local
+spooling of received tables/selections. Default aggregate byte caps are removed.
+Seventeen existing protocol/artifact/CLI/lifecycle tests passed in 14.936 s.
+Five additional streaming tests passed in 13.167 s, including a real garbled row
+over 64 MiB, a transport payload over 64 MiB with under 24 MiB traced buffers,
+real base OT over small frames, and invalid fragment ordering/lengths. The large
+transport test isolates framing, it is not a large-scale private evaluation.

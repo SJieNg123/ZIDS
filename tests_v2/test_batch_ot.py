@@ -62,8 +62,8 @@ class BatchOTTests(unittest.TestCase):
         for name in ('iknp', 'kos', 'direct', 'fake', ''):
             with self.assertRaises(ProtocolError):
                 BaseOTBackend(name)
-        with self.assertRaises(ProtocolError):
-            list(contexts(OTContext(bytes(16), 0, 1, 8*1024*1024)))
+        large = list(contexts(OTContext(bytes(16),0,1,8*1024*1024)))
+        self.assertEqual(large[0][1].message_bytes,8*1024*1024)
         chunks = list(contexts(OTContext(bytes(16), 6, 17, 32), 8))
         self.assertEqual([(i, c.batch, c.count) for i, c in chunks], [(0,6,8), (8,7,8), (16,8,1)])
 
