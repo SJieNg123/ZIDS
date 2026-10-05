@@ -29,7 +29,7 @@ class CLITests(unittest.TestCase):
             self.invoke('compile','--rules',rules,'--output',compiled)
             length = self.invoke('length','--request',request)['n']
             session = root/'server'
-            self.invoke('prepare','--policy',compiled/'policy.json','--length',length,'--output',session)
+            self.invoke('prepare','--policy',compiled/'policy.bin','--length',length,'--output',session)
             server = subprocess.Popen(COMMAND+['serve','--session',str(session),'--port','0'],
                                       cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf8')
             try:
@@ -64,7 +64,7 @@ class CLITests(unittest.TestCase):
             self.invoke('compile','--rules',source,'--output',root/'failed',success=False)
             coverage = json.loads((root/'failed/coverage.json').read_text())
             self.assertEqual(coverage['counts']['unsupported'],2)
-            self.assertFalse((root/'failed/policy.json').exists())
+            self.assertFalse((root/'failed/policy.bin').exists())
 
 
 if __name__ == '__main__':

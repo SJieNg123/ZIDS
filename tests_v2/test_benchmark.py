@@ -33,7 +33,7 @@ class BenchmarkTests(unittest.TestCase):
             root = Path(temporary)
             result = isolated('compile',self.payload(root))
             self.assertEqual(result['status'],'ok',result)
-            self.assertTrue((root/'policy.json').exists())
+            self.assertTrue((root/'policy.bin').exists())
             events = [json.loads(line) for line in (root/'compile-progress.jsonl').read_text().splitlines()]
             self.assertEqual(events[0]['stage'],'regex_validation')
             self.assertEqual(events[-1]['stage'],'policy_write')
@@ -51,7 +51,7 @@ class BenchmarkTests(unittest.TestCase):
             with patch('tools.benchmark_v2.worker',memory_failure_worker):
                 result = isolated('compile',self.payload(root))
             self.assertEqual(result['error_type'],'MemoryError')
-            self.assertFalse((root/'policy.json').exists())
+            self.assertFalse((root/'policy.bin').exists())
 
     def test_explicit_worker_deadline_still_ends_the_child(self):
         with patch('tools.benchmark_v2.worker',sleeping_worker):

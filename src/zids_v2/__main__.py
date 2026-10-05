@@ -14,6 +14,7 @@ from .dfa import LABELS, group_characters
 from .easylist import parse_sources, CoverageError
 from .lifecycle import state, recover
 from .protocol import serve, receive
+from .policy_io import open_policy, save_policy
 
 
 def context_file(path):
@@ -87,22 +88,22 @@ def run(args):
         except ProtocolError as exc:
             write_json(output/'failure.json', {'error':str(exc), 'coverage_counts':coverage['counts']})
             raise
-        write_json(output/'policy.json', policy_dict(dfa, provenance))
+        save_policy(output/'policy.bin',dfa,provenance)
         return provenance
     if command == 'length':
         return {'n':len(context_file(args.request).encode())}
     if command in ('estimate','prepare'):
-        policy = read_json(args.policy, limit=128*1024*1024)
-        dfa = policy_dfa(policy).padded()
-        groups = group_characters(dfa)
-        params = Params(args.length, dfa.q, groups.outmax, groups.cmax)
-        params.enforce_limits()
-        if command == 'estimate':
-            return params.estimate()
-        provenance = dict(policy['provenance'], policy_sha256=digest_file(args.policy))
-        started = perf_counter()
-        manifest = prepare(dfa, args.length, args.output, provenance=provenance)
-        return {'session':manifest['session'], 'params':manifest['params'], 'prepare_seconds':perf_counter()-started}
+        with open_policy(args.policy) as (dfa,provenance):
+            dfa = dfa.padded()
+            groups = group_characters(dfa)
+            params = Params(args.length, dfa.q, groups.outmax, groups.cmax)
+            params.enforce_limits()
+            if command == 'estimate':
+                return params.estimate()
+            provenance = dict(provenance,policy_sha256=digest_file(args.policy))
+            started = perf_counter()
+            manifest = prepare(dfa, args.length, args.output, provenance=provenance)
+            return {'session':manifest['session'], 'params':manifest['params'], 'prepare_seconds':perf_counter()-started}
     if command == 'serve':
         return serve(args.session,args.host,args.port,batch_size=args.batch_size,cert=args.cert,key=args.key,ca=args.ca,
                      ready=lambda port: print(json.dumps({'listening':port}), flush=True))

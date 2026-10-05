@@ -43,3 +43,8 @@ checkpoint, compiler and codec tests passed in 23.784 s. A 2,000-byte literal
 fixture uses under one twentieth of dense uint64 transition storage. Random
 labelled DFAs retain all three outputs after refinement. No full-scale speedup
 or reduction in reachable subset count is claimed.
+
+Step 4a implemented: atomic binary policy publication, complete-file SHA256,
+strict format validation, mmap loading and legacy JSON reading. CLI and benchmark
+use `policy.bin`. Eight policy/CLI/benchmark tests passed in 9.718 s, including a
+real file larger than 128 MiB, checksum corruption and fresh real-OT evaluation.

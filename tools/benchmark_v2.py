@@ -22,6 +22,7 @@ from src.zids_v2.dfa import group_characters
 from src.zids_v2.easylist import parse_sources
 from src.zids_v2.measure import peak_rss_bytes
 from src.zids_v2.protocol import serve, receive
+from src.zids_v2.policy_io import open_policy, save_policy
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -42,11 +43,11 @@ def worker(operation, payload, result, ready=None):
                 dfa, provenance, coverage = compile_sources([(Path(payload['rules']).name,text)],
                                                             progress=progress, **bounds)
                 progress({'stage':'policy_write','q':dfa.q})
-            write_json(Path(payload['output'])/'policy.json',policy_dict(dfa,provenance))
+            save_policy(Path(payload['output'])/'policy.bin',dfa,provenance)
             value = provenance
         elif operation == 'prepare':
-            policy = read_json(payload['policy'],limit=128*1024*1024)
-            manifest = prepare(policy_dfa(policy),payload['n'],payload['output'],provenance=policy['provenance'])
+            with open_policy(payload['policy']) as (dfa,provenance):
+                manifest = prepare(dfa,payload['n'],payload['output'],provenance=provenance)
             value = {'params':manifest['params'],'session':manifest['session']}
         elif operation == 'serve':
             value = serve(payload['root'],port=0,ready=lambda port: ready.put(port))
@@ -182,6 +183,32 @@ def fixtures(full_text):
     ]
 
 
+def check_compiled(directory, contexts, expected, secure):
+    with open_policy(directory/'policy.bin') as (dfa,_):
+        outputs = [dfa.evaluate(c.encode()) for c in contexts]
+        record = {'dfa_mismatches':sum(a != b for a,b in zip(outputs,expected))}
+        if record['dfa_mismatches']:
+            return dict(record,status='failed')
+        groups = group_characters(dfa.padded())
+        params = Params(max(len(c.encode()) for c in contexts),dfa.padded().q,groups.outmax,groups.cmax)
+        record['largest_input_forecast'] = params.estimate()
+        try:
+            params.enforce_limits()
+            record['resource_check'] = 'ok'
+        except ProtocolError as exc:
+            record['resource_check'] = str(exc)
+        record['secure'] = []
+        if secure and record['resource_check'] == 'ok':
+            for i,(context,label) in enumerate(zip(contexts[:3],expected[:3])):
+                print(json.dumps({'scale':directory.name,'stage':'secure','case':i}),flush=True)
+                record['secure'].append(secure_sample(directory/'policy.bin',context,directory/('request-'+str(i)),label))
+        if secure and record['resource_check'] != 'ok':
+            record['status'] = 'resource_limit'
+        else:
+            record['status'] = 'ok' if all(r['status']=='ok' for r in record['secure']) else 'failed'
+        return record
+
+
 def run(output, *, scales=None, secure_scales=('synthetic','small'), seconds=None, max_nfa=None, max_dfa=None):
     output = Path(output)
     output.mkdir(parents=True,exist_ok=False)
@@ -228,29 +255,7 @@ def run(output, *, scales=None, secure_scales=('synthetic','small'), seconds=Non
                             timeout=None if seconds is None else seconds+180)
         record['compile'] = compiled
         if compiled['status'] == 'ok':
-            dfa = policy_dfa(read_json(directory/'policy.json',limit=None))
-            outputs = [dfa.evaluate(c.encode()) for c in contexts]
-            record['dfa_mismatches'] = sum(a != b for a,b in zip(outputs,expected))
-            if record['dfa_mismatches']:
-                record['status'] = 'failed'
-            else:
-                groups = group_characters(dfa.padded())
-                params = Params(max(len(c.encode()) for c in contexts),dfa.padded().q,groups.outmax,groups.cmax)
-                record['largest_input_forecast'] = params.estimate()
-                try:
-                    params.enforce_limits()
-                    record['resource_check'] = 'ok'
-                except ProtocolError as exc:
-                    record['resource_check'] = str(exc)
-                record['secure'] = []
-                if name in secure_scales and record['resource_check'] == 'ok':
-                    for i,(context,label) in enumerate(zip(contexts[:3],expected[:3])):
-                        print(json.dumps({'scale':name,'stage':'secure','case':i}),flush=True)
-                        record['secure'].append(secure_sample(directory/'policy.json',context,directory/('request-'+str(i)),label))
-                if name in secure_scales and record['resource_check'] != 'ok':
-                    record['status'] = 'resource_limit'
-                else:
-                    record['status'] = 'ok' if all(r['status']=='ok' for r in record['secure']) else 'failed'
+            record.update(check_compiled(directory,contexts,expected,name in secure_scales))
         else:
             record['status'] = 'compile_limit' if compiled['error_type']=='CompileLimit' else 'failed'
         report['scales'].append(record)

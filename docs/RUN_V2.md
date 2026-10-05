@@ -22,8 +22,8 @@ request context and never fetch the example URLs. Output directories must be new
 ```text
 python -m src.zids_v2 compile --rules tests_v2/fixtures/demo.abp --output v2-runs/demo-policy
 python -m src.zids_v2 length --request tests_v2/fixtures/request.json
-python -m src.zids_v2 estimate --policy v2-runs/demo-policy/policy.json --length 41
-python -m src.zids_v2 prepare --policy v2-runs/demo-policy/policy.json --length 41 --output v2-runs/demo-session
+python -m src.zids_v2 estimate --policy v2-runs/demo-policy/policy.bin --length 41
+python -m src.zids_v2 prepare --policy v2-runs/demo-policy/policy.bin --length 41 --output v2-runs/demo-session
 python -m src.zids_v2 serve --session v2-runs/demo-session --port 8787
 ```
 
@@ -60,6 +60,9 @@ on both commands, plus `--server-name NAME` on the client when the certificate
 name differs from `--host`. Certificate validation cannot be disabled in the CLI.
 
 For another rules file, run `compile --rules FILE --output NEW_DIRECTORY`.
+New compilations write a checksummed `policy.bin` with compact transitions and
+read-only memory mapping. Legacy `policy.json` remains readable. Private policy
+loading has no default file-size cap. Never send either policy format to clients.
 Compilation defaults to unlimited states and runtime. To run the large compiler
 experiments sequentially without state or time caps, use a fresh directory:
 
