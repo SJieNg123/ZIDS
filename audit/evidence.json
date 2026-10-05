@@ -1,0 +1,1575 @@
+[
+  {
+    "probe": "ot_parity",
+    "completed": true,
+    "result": {
+      "ciphertext_xor": "07070707070707070707070707070707",
+      "plaintext_xor": "07070707070707070707070707070707",
+      "unchosen_messages_relation_leaked": true,
+      "ot_queries_needed": 0
+    },
+    "seconds": 0.0068
+  },
+  {
+    "probe": "base_ot_malicious_sender",
+    "completed": true,
+    "result": {
+      "malicious_A": "p - 1",
+      "rejected": false,
+      "results": [
+        {
+          "actual_choice": 0,
+          "inferred_from_public_response": 0
+        },
+        {
+          "actual_choice": 1,
+          "inferred_from_public_response": 1
+        }
+      ]
+    },
+    "seconds": 0.0833
+  },
+  {
+    "probe": "packing_and_decoder",
+    "completed": true,
+    "result": {
+      "expected": [
+        1,
+        7
+      ],
+      "current_decoder": [
+        1,
+        0
+      ],
+      "legacy_decoder": [
+        0,
+        29696
+      ],
+      "nonzero_padding_accepted": [
+        0,
+        65535
+      ],
+      "entry_bytes": 48,
+      "row_bytes": 144,
+      "outmax_in_entry_size": true
+    },
+    "seconds": 0.0165
+  },
+  {
+    "probe": "permutation_direction",
+    "completed": true,
+    "result": {
+      "public_new_to_old": [
+        2,
+        0,
+        1
+      ],
+      "expected_new_row_0_logical_state": 2,
+      "actual_inv_permute_0": 1
+    },
+    "seconds": 0.0
+  },
+  {
+    "probe": "regex_semantics",
+    "completed": true,
+    "result": [
+      {
+        "pattern": "a{2}",
+        "data": "aaa",
+        "anchored": true,
+        "ignore_case": false,
+        "expected": false,
+        "actual": true
+      },
+      {
+        "pattern": "[^a]",
+        "data": "a",
+        "anchored": true,
+        "ignore_case": true,
+        "expected": false,
+        "actual": true
+      },
+      {
+        "pattern": "\\d",
+        "data": "5",
+        "anchored": true,
+        "ignore_case": false,
+        "expected": true,
+        "actual": false
+      },
+      {
+        "pattern": "^abc$",
+        "data": "abc",
+        "anchored": false,
+        "ignore_case": false,
+        "expected": true,
+        "actual": false
+      },
+      {
+        "pattern": "\\x41",
+        "data": "a",
+        "anchored": true,
+        "ignore_case": true,
+        "expected": true,
+        "actual": false
+      },
+      {
+        "pattern": "abc",
+        "data": "abcZ",
+        "anchored": false,
+        "ignore_case": false,
+        "expected": true,
+        "actual": false
+      },
+      {
+        "pattern": "a",
+        "integer_flags": {
+          "error": "AttributeError: 'RegexFlag' object has no attribute 'ignore_case'"
+        }
+      },
+      {
+        "pattern": "a{3,2}",
+        "invalid_repeat": {
+          "returned": true
+        }
+      }
+    ],
+    "seconds": 0.0104
+  },
+  {
+    "probe": "global_groups",
+    "completed": true,
+    "result": {
+      "pattern": "ab",
+      "global_group_count": 4,
+      "paper_cmax": 2,
+      "implementation_suggest_cmax": 1
+    },
+    "seconds": 0.0043
+  },
+  {
+    "probe": "allow_aggregation",
+    "completed": true,
+    "result": {
+      "correct_tags": [
+        1,
+        2
+      ],
+      "aggregated_id": 1,
+      "expected": [
+        "ALLOW",
+        [
+          2
+        ]
+      ],
+      "actual": [
+        "BLOCK",
+        [
+          1
+        ]
+      ]
+    },
+    "seconds": 0.004
+  },
+  {
+    "probe": "easylist_semantics",
+    "completed": true,
+    "result": [
+      {
+        "rule": "||ads.example^",
+        "raw_url": "https://ads.example/",
+        "expected_url_match": true,
+        "regex_on_url": true,
+        "regex_on_abp_payload": false,
+        "converted_pattern": ".*://([^.]+\\.)*ads\\.example(/|$)"
+      },
+      {
+        "rule": "/ads/*",
+        "raw_url": "https://site.example/ads/banner.js",
+        "expected_url_match": true,
+        "regex_on_url": false,
+        "regex_on_abp_payload": false,
+        "converted_pattern": ".*/ads/\\*.*"
+      },
+      {
+        "rule": "|https://ads.example/",
+        "raw_url": "https://ads.example/",
+        "expected_url_match": true,
+        "regex_on_url": false,
+        "regex_on_abp_payload": false,
+        "converted_pattern": ".*\\|https://ads\\.example/.*"
+      },
+      {
+        "rule": "||ads.example^",
+        "raw_url": "https://ads.example:8443/",
+        "expected_url_match": true,
+        "regex_on_url": false,
+        "regex_on_abp_payload": false,
+        "converted_pattern": ".*://([^.]+\\.)*ads\\.example(/|$)"
+      },
+      {
+        "rule": "||ads.example^$script",
+        "raw_url": "https://ads.example/",
+        "expected_url_match": null,
+        "regex_on_url": true,
+        "regex_on_abp_payload": false,
+        "converted_pattern": ".*://([^.]+\\.)*ads\\.example(/|$)"
+      },
+      {
+        "rule": "@@||ads.example^",
+        "raw_url": "https://ads.example/",
+        "expected_url_match": true,
+        "regex_on_url": true,
+        "regex_on_abp_payload": false,
+        "converted_pattern": ".*://([^.]+\\.)*ads\\.example(/|$)"
+      },
+      {
+        "loader_action": "MISSING",
+        "loader_ignore_case": true,
+        "sanitized_action": "BLOCK",
+        "sanitized_flags": 0,
+        "sanitized_ignore_case": false
+      }
+    ],
+    "seconds": 0.0132
+  },
+  {
+    "probe": "benchmark_reinitialization",
+    "completed": true,
+    "result": {
+      "evaluations": 3,
+      "initialization_calls": 3
+    },
+    "seconds": 0.0006
+  },
+  {
+    "probe": "session_keys",
+    "completed": true,
+    "result": {
+      "different_sessions": true,
+      "identical_key_tables": true
+    },
+    "seconds": 0.004
+  },
+  {
+    "probe": "actual_artifact_decryption",
+    "completed": true,
+    "result": {
+      "artifact": "artifacts/small/gdfa.bin",
+      "cells": 132,
+      "valid_decrypted_cells": 132,
+      "server_requests": 0,
+      "key_source": "Existing client configuration, value omitted"
+    },
+    "seconds": 0.0046
+  },
+  {
+    "probe": "actual_small_engine",
+    "completed": true,
+    "result": {
+      "actual_network_requests": 0,
+      "results": [
+        {
+          "url": "https://0cf.io/",
+          "direct_bytes_ids": [
+            1
+          ],
+          "public_run_ids": [],
+          "abp_payload_ids": []
+        },
+        {
+          "url": "https://adv.gg/",
+          "direct_bytes_ids": [
+            2
+          ],
+          "public_run_ids": [],
+          "abp_payload_ids": []
+        },
+        {
+          "url": "https://unmatched.example/",
+          "direct_bytes_ids": [],
+          "public_run_ids": [],
+          "abp_payload_ids": []
+        }
+      ]
+    },
+    "seconds": 0.0048
+  },
+  {
+    "probe": "http_wire_semantics",
+    "completed": true,
+    "result": {
+      "captured_json_fields": [
+        {
+          "endpoint": "start",
+          "fields": [
+            "sid"
+          ],
+          "row": null,
+          "col": null
+        },
+        {
+          "endpoint": "choose",
+          "fields": [
+            "col",
+            "k_bytes",
+            "master_hex",
+            "row",
+            "sid"
+          ],
+          "row": 5,
+          "col": 0
+        },
+        {
+          "endpoint": "choose",
+          "fields": [
+            "col",
+            "k_bytes",
+            "master_hex",
+            "row",
+            "sid"
+          ],
+          "row": 5,
+          "col": 1
+        }
+      ],
+      "different_columns_same_key": true,
+      "actual_network_requests": 0
+    },
+    "seconds": 0.0643
+  },
+  {
+    "probe": "legacy_garbling",
+    "completed": true,
+    "result": {
+      "same_seed": true,
+      "pad_matches": false,
+      "builder_label": "ZIDS|CELL",
+      "legacy_label": "PRG|GDFA|cell"
+    },
+    "seconds": 0.0001
+  },
+  {
+    "probe": "default_build_and_idmap",
+    "completed": true,
+    "result": {
+      "prefiltered": 1,
+      "rebuilt_ciphertexts_differ": true,
+      "online_key_material_exported_by_tools_build_artifacts": false
+    },
+    "seconds": 0.3518
+  },
+  {
+    "probe": "optional_backend_and_helpers",
+    "completed": true,
+    "result": {
+      "iknp_backend": "DirectOTExtension",
+      "generated_negative": "https://example.com/path/adsx",
+      "negative_actually_matches": true,
+      "singleton_percentile": {
+        "error": "StatisticsError: must have at least two data points"
+      },
+      "unknown_id_library": [
+        "BLOCK",
+        [
+          999
+        ]
+      ],
+      "unknown_id_cli": [
+        "NOMATCH",
+        []
+      ],
+      "offline_setup_import": {
+        "error": "ModuleNotFoundError: No module named 'common'"
+      },
+      "regex_fallback_first_rule_id": [
+        0
+      ]
+    },
+    "seconds": 0.0281
+  },
+  {
+    "probe": "rule_id_drift",
+    "completed": true,
+    "result": {
+      "original_survivor_id": 2,
+      "id_after_sanitizing": 1,
+      "multi_file_rule_ids": [
+        1,
+        1
+      ]
+    },
+    "seconds": 0.0093
+  },
+  {
+    "probe": "data_and_artifacts",
+    "completed": true,
+    "result": {
+      "artifacts": [
+        {
+          "file": "artifacts/gdfa.bin",
+          "bytes": 65575321,
+          "states": 1419,
+          "outmax": 38,
+          "cmax": 1,
+          "start_row": 54,
+          "cell_bytes": 1216,
+          "row_bytes": 46208,
+          "actual_outmax": 38,
+          "identity_permutation": false,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 0,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "artifacts/L12/gdfa.bin",
+          "bytes": 64435860,
+          "states": 2237,
+          "outmax": 30,
+          "cmax": 1,
+          "start_row": 1835,
+          "cell_bytes": 960,
+          "row_bytes": 28800,
+          "actual_outmax": 30,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "artifacts/L128/gdfa.bin",
+          "bytes": 1247703574,
+          "states": 25632,
+          "outmax": 39,
+          "cmax": 1,
+          "start_row": 25230,
+          "cell_bytes": 1248,
+          "row_bytes": 48672,
+          "actual_outmax": 39,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "artifacts/L16/gdfa.bin",
+          "bytes": 50831941,
+          "states": 3002,
+          "outmax": 23,
+          "cmax": 1,
+          "start_row": 2600,
+          "cell_bytes": 736,
+          "row_bytes": 16928,
+          "actual_outmax": 23,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "artifacts/L20/gdfa.bin",
+          "bytes": 82111490,
+          "states": 3795,
+          "outmax": 26,
+          "cmax": 1,
+          "start_row": 3393,
+          "cell_bytes": 832,
+          "row_bytes": 21632,
+          "actual_outmax": 26,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "artifacts/L24/gdfa.bin",
+          "bytes": 24617398,
+          "states": 4548,
+          "outmax": 13,
+          "cmax": 1,
+          "start_row": 4146,
+          "cell_bytes": 416,
+          "row_bytes": 5408,
+          "actual_outmax": 13,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "artifacts/L28/gdfa.bin",
+          "bytes": 108646230,
+          "states": 5431,
+          "outmax": 25,
+          "cmax": 1,
+          "start_row": 5029,
+          "cell_bytes": 800,
+          "row_bytes": 20000,
+          "actual_outmax": 25,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "artifacts/L32/gdfa.bin",
+          "bytes": 312164677,
+          "states": 6413,
+          "outmax": 39,
+          "cmax": 1,
+          "start_row": 6011,
+          "cell_bytes": 1248,
+          "row_bytes": 48672,
+          "actual_outmax": 39,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "artifacts/L48/gdfa.bin",
+          "bytes": 444891627,
+          "states": 9627,
+          "outmax": 38,
+          "cmax": 1,
+          "start_row": 9225,
+          "cell_bytes": 1216,
+          "row_bytes": 46208,
+          "actual_outmax": 38,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "artifacts/L64/gdfa.bin",
+          "bytes": 624381784,
+          "states": 12827,
+          "outmax": 39,
+          "cmax": 1,
+          "start_row": 12425,
+          "cell_bytes": 1248,
+          "row_bytes": 48672,
+          "actual_outmax": 39,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "artifacts/L8/gdfa.bin",
+          "bytes": 65575323,
+          "states": 1419,
+          "outmax": 38,
+          "cmax": 1,
+          "start_row": 1061,
+          "cell_bytes": 1216,
+          "row_bytes": 46208,
+          "actual_outmax": 38,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 178,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "artifacts/small/gdfa.bin",
+          "bytes": 25579,
+          "states": 22,
+          "outmax": 6,
+          "cmax": 1,
+          "start_row": 16,
+          "cell_bytes": 192,
+          "row_bytes": 1152,
+          "actual_outmax": 6,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 2,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_pipeline/artifacts/gdfa.bin",
+          "bytes": 66694092,
+          "states": 1608,
+          "outmax": 36,
+          "cmax": 1,
+          "start_row": 1248,
+          "cell_bytes": 1152,
+          "row_bytes": 41472,
+          "actual_outmax": 36,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 178,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_pipeline_L12/artifacts/gdfa.bin",
+          "bytes": 4691339288,
+          "states": 2237,
+          "outmax": 256,
+          "cmax": 1,
+          "start_row": 1835,
+          "cell_bytes": 8192,
+          "row_bytes": 2097152,
+          "actual_outmax": 30,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_pipeline_L128/artifacts/gdfa.bin",
+          "bytes": 53754342937,
+          "states": 25632,
+          "outmax": 256,
+          "cmax": 1,
+          "start_row": 25230,
+          "cell_bytes": 8192,
+          "row_bytes": 2097152,
+          "actual_outmax": 39,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_pipeline_L16/artifacts/gdfa.bin",
+          "bytes": 6295664393,
+          "states": 3002,
+          "outmax": 256,
+          "cmax": 1,
+          "start_row": 2600,
+          "cell_bytes": 8192,
+          "row_bytes": 2097152,
+          "actual_outmax": 23,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_pipeline_L20/artifacts/gdfa.bin",
+          "bytes": 7958709894,
+          "states": 3795,
+          "outmax": 256,
+          "cmax": 1,
+          "start_row": 3393,
+          "cell_bytes": 8192,
+          "row_bytes": 2097152,
+          "actual_outmax": 26,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_pipeline_L24/artifacts/gdfa.bin",
+          "bytes": 9537869115,
+          "states": 4548,
+          "outmax": 256,
+          "cmax": 1,
+          "start_row": 4146,
+          "cell_bytes": 8192,
+          "row_bytes": 2097152,
+          "actual_outmax": 13,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_pipeline_L28/artifacts/gdfa.bin",
+          "bytes": 11389658746,
+          "states": 5431,
+          "outmax": 256,
+          "cmax": 1,
+          "start_row": 5029,
+          "cell_bytes": 8192,
+          "row_bytes": 2097152,
+          "actual_outmax": 25,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_pipeline_L32/artifacts/gdfa.bin",
+          "bytes": 20189329518,
+          "states": 9627,
+          "outmax": 256,
+          "cmax": 1,
+          "start_row": 9225,
+          "cell_bytes": 8192,
+          "row_bytes": 2097152,
+          "actual_outmax": 38,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_pipeline_L48/artifacts/gdfa.bin",
+          "bytes": 20189329518,
+          "states": 9627,
+          "outmax": 256,
+          "cmax": 1,
+          "start_row": 9225,
+          "cell_bytes": 8192,
+          "row_bytes": 2097152,
+          "actual_outmax": 38,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_pipeline_L64/artifacts/gdfa.bin",
+          "bytes": 26900234747,
+          "states": 12827,
+          "outmax": 256,
+          "cmax": 1,
+          "start_row": 12425,
+          "cell_bytes": 8192,
+          "row_bytes": 2097152,
+          "actual_outmax": 39,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_pipeline_L8/artifacts/gdfa.bin",
+          "bytes": 2975864862,
+          "states": 1419,
+          "outmax": 256,
+          "cmax": 1,
+          "start_row": 1061,
+          "cell_bytes": 8192,
+          "row_bytes": 2097152,
+          "actual_outmax": 38,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 178,
+          "body_hash_recomputed": false
+        },
+        {
+          "file": "out/bench_single_thread/artifacts/gdfa.bin",
+          "bytes": 624381784,
+          "states": 12827,
+          "outmax": 39,
+          "cmax": 1,
+          "start_row": 12425,
+          "cell_bytes": 1248,
+          "row_bytes": 48672,
+          "actual_outmax": 39,
+          "identity_permutation": true,
+          "structure_length_ok": true,
+          "alphabet_rows_match": true,
+          "invalid_alphabet_entries": 0,
+          "distinct_positive_aids": 200,
+          "body_hash_recomputed": false
+        }
+      ],
+      "configs": [
+        {
+          "file": "configs/engine_init.json",
+          "gdfa": ".\\artifacts_small\\gdfa.bin",
+          "rowalph": ".\\artifacts_small\\row_alph.bin",
+          "artifact_exists": false,
+          "chooser": "src.client.online.chooser_ot:OTChooser",
+          "contains_master": false,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": true
+        },
+        {
+          "file": "configs/engine_init_L12.json",
+          "gdfa": ".\\artifacts\\L12\\gdfa.bin",
+          "rowalph": ".\\artifacts\\L12\\row_alph.bin",
+          "artifact_exists": true,
+          "chooser": "src.client.online.token_http:_OTRowChooser",
+          "contains_master": true,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": false
+        },
+        {
+          "file": "configs/engine_init_L128.json",
+          "gdfa": ".\\artifacts\\L128\\gdfa.bin",
+          "rowalph": ".\\artifacts\\L128\\row_alph.bin",
+          "artifact_exists": true,
+          "chooser": "src.client.online.token_http:_OTRowChooser",
+          "contains_master": true,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": false
+        },
+        {
+          "file": "configs/engine_init_L16.json",
+          "gdfa": ".\\artifacts\\L16\\gdfa.bin",
+          "rowalph": ".\\artifacts\\L16\\row_alph.bin",
+          "artifact_exists": true,
+          "chooser": "src.client.online.token_http:_OTRowChooser",
+          "contains_master": true,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": false
+        },
+        {
+          "file": "configs/engine_init_L20.json",
+          "gdfa": ".\\artifacts\\L20\\gdfa.bin",
+          "rowalph": ".\\artifacts\\L20\\row_alph.bin",
+          "artifact_exists": true,
+          "chooser": "src.client.online.token_http:_OTRowChooser",
+          "contains_master": true,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": false
+        },
+        {
+          "file": "configs/engine_init_L24.json",
+          "gdfa": ".\\artifacts\\L24\\gdfa.bin",
+          "rowalph": ".\\artifacts\\L24\\row_alph.bin",
+          "artifact_exists": true,
+          "chooser": "src.client.online.token_http:_OTRowChooser",
+          "contains_master": true,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": false
+        },
+        {
+          "file": "configs/engine_init_L28.json",
+          "gdfa": ".\\artifacts\\L28\\gdfa.bin",
+          "rowalph": ".\\artifacts\\L28\\row_alph.bin",
+          "artifact_exists": true,
+          "chooser": "src.client.online.token_http:_OTRowChooser",
+          "contains_master": true,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": false
+        },
+        {
+          "file": "configs/engine_init_L32.json",
+          "gdfa": ".\\artifacts\\L32\\gdfa.bin",
+          "rowalph": ".\\artifacts\\L32\\row_alph.bin",
+          "artifact_exists": true,
+          "chooser": "src.client.online.token_http:_OTRowChooser",
+          "contains_master": true,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": false
+        },
+        {
+          "file": "configs/engine_init_L48.json",
+          "gdfa": ".\\artifacts\\L48\\gdfa.bin",
+          "rowalph": ".\\artifacts\\L48\\row_alph.bin",
+          "artifact_exists": true,
+          "chooser": "src.client.online.token_http:_OTRowChooser",
+          "contains_master": true,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": false
+        },
+        {
+          "file": "configs/engine_init_L64.json",
+          "gdfa": ".\\artifacts\\L64\\gdfa.bin",
+          "rowalph": ".\\artifacts\\L64\\row_alph.bin",
+          "artifact_exists": true,
+          "chooser": "src.client.online.token_http:_OTRowChooser",
+          "contains_master": true,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": false
+        },
+        {
+          "file": "configs/engine_init_L8.json",
+          "gdfa": ".\\artifacts\\L8\\gdfa.bin",
+          "rowalph": ".\\artifacts\\L8\\row_alph.bin",
+          "artifact_exists": true,
+          "chooser": "src.client.online.token_http:_OTRowChooser",
+          "contains_master": true,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": false
+        },
+        {
+          "file": "configs/engine_init_small.json",
+          "gdfa": ".\\artifacts\\small\\gdfa.bin",
+          "rowalph": ".\\artifacts\\small\\row_alph.bin",
+          "artifact_exists": true,
+          "chooser": "src.client.online.token_http:_OTRowChooser",
+          "contains_master": true,
+          "reads_gk_index": false,
+          "ignored_gk_index_mode": false
+        }
+      ],
+      "rulefiles": [
+        {
+          "file": "rules/easylist copy.txt",
+          "lines": 71267,
+          "useful": 70967,
+          "unique": 70963,
+          "domain_anchor": 45210,
+          "allow": 738,
+          "options": 8228,
+          "cosmetic": 23491
+        },
+        {
+          "file": "rules/easylist.txt",
+          "lines": 71266,
+          "useful": 70967,
+          "unique": 70963,
+          "domain_anchor": 45210,
+          "allow": 738,
+          "options": 8228,
+          "cosmetic": 23491
+        },
+        {
+          "file": "rules/easylist_2k.abp",
+          "lines": 2000,
+          "useful": 2000,
+          "unique": 2000,
+          "domain_anchor": 2000,
+          "allow": 0,
+          "options": 0,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/easylist_2k.txt",
+          "lines": 37228,
+          "useful": 37212,
+          "unique": 37211,
+          "domain_anchor": 36525,
+          "allow": 673,
+          "options": 642,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/input200/easylist_12.abp",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "domain_anchor": 200,
+          "allow": 0,
+          "options": 0,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/input200/easylist_128.abp",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "domain_anchor": 200,
+          "allow": 0,
+          "options": 0,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/input200/easylist_16.abp",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "domain_anchor": 200,
+          "allow": 0,
+          "options": 0,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/input200/easylist_20.abp",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "domain_anchor": 200,
+          "allow": 0,
+          "options": 0,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/input200/easylist_24.abp",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "domain_anchor": 200,
+          "allow": 0,
+          "options": 0,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/input200/easylist_28.abp",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "domain_anchor": 200,
+          "allow": 0,
+          "options": 0,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/input200/easylist_32.abp",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "domain_anchor": 200,
+          "allow": 0,
+          "options": 0,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/input200/easylist_48.abp",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "domain_anchor": 200,
+          "allow": 0,
+          "options": 0,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/input200/easylist_64.abp",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "domain_anchor": 200,
+          "allow": 0,
+          "options": 0,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/input200/easylist_8.abp",
+          "lines": 200,
+          "useful": 200,
+          "unique": 178,
+          "domain_anchor": 200,
+          "allow": 0,
+          "options": 0,
+          "cosmetic": 0
+        },
+        {
+          "file": "rules/small.abp",
+          "lines": 2,
+          "useful": 2,
+          "unique": 2,
+          "domain_anchor": 1,
+          "allow": 1,
+          "options": 0,
+          "cosmetic": 0
+        }
+      ],
+      "datasets": [
+        {
+          "file": "rules/input200/dataset/dataset_L128_urls.txt",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "all_url_only": true,
+          "expected_domain_rule_positives": 200
+        },
+        {
+          "file": "rules/input200/dataset/dataset_L12_urls.txt",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "all_url_only": true,
+          "expected_domain_rule_positives": 200
+        },
+        {
+          "file": "rules/input200/dataset/dataset_L16_urls.txt",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "all_url_only": true,
+          "expected_domain_rule_positives": 200
+        },
+        {
+          "file": "rules/input200/dataset/dataset_L20_urls.txt",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "all_url_only": true,
+          "expected_domain_rule_positives": 200
+        },
+        {
+          "file": "rules/input200/dataset/dataset_L24_urls.txt",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "all_url_only": true,
+          "expected_domain_rule_positives": 200
+        },
+        {
+          "file": "rules/input200/dataset/dataset_L28_urls.txt",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "all_url_only": true,
+          "expected_domain_rule_positives": 200
+        },
+        {
+          "file": "rules/input200/dataset/dataset_L32_urls.txt",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "all_url_only": true,
+          "expected_domain_rule_positives": 200
+        },
+        {
+          "file": "rules/input200/dataset/dataset_L48_urls.txt",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "all_url_only": true,
+          "expected_domain_rule_positives": 200
+        },
+        {
+          "file": "rules/input200/dataset/dataset_L64_urls.txt",
+          "lines": 200,
+          "useful": 200,
+          "unique": 200,
+          "all_url_only": true,
+          "expected_domain_rule_positives": 200
+        },
+        {
+          "file": "rules/input200/dataset/dataset_L8_urls.txt",
+          "lines": 200,
+          "useful": 200,
+          "unique": 178,
+          "all_url_only": true,
+          "expected_domain_rule_positives": 200
+        }
+      ],
+      "csv_files": [
+        {
+          "file": "out/bench_pipeline/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L12/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L12/bench_regex.csv",
+          "rows": 200,
+          "engine_nomatch": 0,
+          "regex_nomatch": 200,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L128/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L128/bench_regex.csv",
+          "rows": 200,
+          "engine_nomatch": 0,
+          "regex_nomatch": 200,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L16/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L16/bench_regex.csv",
+          "rows": 200,
+          "engine_nomatch": 0,
+          "regex_nomatch": 200,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L20/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L20/bench_regex.csv",
+          "rows": 200,
+          "engine_nomatch": 0,
+          "regex_nomatch": 200,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L24/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L24/bench_regex.csv",
+          "rows": 200,
+          "engine_nomatch": 0,
+          "regex_nomatch": 200,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L28/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L28/bench_regex.csv",
+          "rows": 200,
+          "engine_nomatch": 0,
+          "regex_nomatch": 200,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L32/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L32/bench_regex.csv",
+          "rows": 200,
+          "engine_nomatch": 0,
+          "regex_nomatch": 200,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L48/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L48/bench_regex.csv",
+          "rows": 200,
+          "engine_nomatch": 0,
+          "regex_nomatch": 200,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L64/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L64/bench_regex.csv",
+          "rows": 200,
+          "engine_nomatch": 0,
+          "regex_nomatch": 200,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L8/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_pipeline_L8/bench_regex.csv",
+          "rows": 200,
+          "engine_nomatch": 0,
+          "regex_nomatch": 200,
+          "agreement_cells": 0
+        },
+        {
+          "file": "out/bench_single_thread/bench_engine.csv",
+          "rows": 200,
+          "engine_nomatch": 200,
+          "regex_nomatch": 0,
+          "agreement_cells": 0
+        }
+      ],
+      "summaries": [
+        {
+          "file": "out/bench_pipeline/pipeline_summary.json",
+          "idmap_time_s": 0.042457500007003546,
+          "offline_build_time_s": 44.157744999974966,
+          "engine_bench_time_s": 21.721539499994833,
+          "regex_bench_time_s": 0.0,
+          "ot_bench_time_s": 0.3778992999577895,
+          "total_online_time_s": 22.099438799952623,
+          "total_pipeline_time_s": 66.29964129993459,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L8_urls.txt",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_8.abp",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L8.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline\\bench_regex.csv"
+          }
+        },
+        {
+          "file": "out/bench_pipeline_L12/pipeline_summary.json",
+          "idmap_time_s": 0.05748159997165203,
+          "offline_build_time_s": 633.5257882000878,
+          "engine_bench_time_s": 46.022749299998395,
+          "regex_bench_time_s": 0.3304214000236243,
+          "ot_bench_time_s": 10.641036999993958,
+          "total_online_time_s": 56.99420770001598,
+          "total_pipeline_time_s": 690.5774775000755,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_12.abp",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L12_urls.txt",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L12.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L12",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L12\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L12\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L12\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L12\\bench_regex.csv"
+          }
+        },
+        {
+          "file": "out/bench_pipeline_L128/pipeline_summary.json",
+          "idmap_time_s": 0.05898780000001125,
+          "offline_build_time_s": 9634.171982799999,
+          "engine_bench_time_s": 676.9269432000001,
+          "regex_bench_time_s": 0.37583989999984624,
+          "ot_bench_time_s": 161.5861721000001,
+          "total_online_time_s": 838.8889552,
+          "total_pipeline_time_s": 10473.119925799998,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_128.abp",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L128_urls.txt",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L128.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L128",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L128\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L128\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L128\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L128\\bench_regex.csv"
+          }
+        },
+        {
+          "file": "out/bench_pipeline_L16/pipeline_summary.json",
+          "idmap_time_s": 0.0506240000249818,
+          "offline_build_time_s": 1042.987663100008,
+          "engine_bench_time_s": 41.04760259995237,
+          "regex_bench_time_s": 0.3647168999304995,
+          "ot_bench_time_s": 14.504729599924758,
+          "total_online_time_s": 55.91704909980763,
+          "total_pipeline_time_s": 1098.9553361998405,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_16.abp",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L16_urls.txt",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L16.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L16",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L16\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L16\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L16\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L16\\bench_regex.csv"
+          }
+        },
+        {
+          "file": "out/bench_pipeline_L20/pipeline_summary.json",
+          "idmap_time_s": 0.05311910004820675,
+          "offline_build_time_s": 1299.865927600069,
+          "engine_bench_time_s": 74.92686890007462,
+          "regex_bench_time_s": 0.27281640004366636,
+          "ot_bench_time_s": 15.050960900029168,
+          "total_online_time_s": 90.25064620014746,
+          "total_pipeline_time_s": 1390.1696929002646,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_20.abp",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L20_urls.txt",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L20.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L20",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L20\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L20\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L20\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L20\\bench_regex.csv"
+          }
+        },
+        {
+          "file": "out/bench_pipeline_L24/pipeline_summary.json",
+          "idmap_time_s": 0.05302690004464239,
+          "offline_build_time_s": 1184.4164956000168,
+          "engine_bench_time_s": 31.78485679998994,
+          "regex_bench_time_s": 0.2940781000070274,
+          "ot_bench_time_s": 31.783130299998447,
+          "total_online_time_s": 63.86206519999541,
+          "total_pipeline_time_s": 1248.3315877000568,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_24.abp",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L24_urls.txt",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L24.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L24",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L24\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L24\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L24\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L24\\bench_regex.csv"
+          }
+        },
+        {
+          "file": "out/bench_pipeline_L28/pipeline_summary.json",
+          "idmap_time_s": 0.04603990004397929,
+          "offline_build_time_s": 1387.7972385000903,
+          "engine_bench_time_s": 90.49866869999096,
+          "regex_bench_time_s": 0.25917989993467927,
+          "ot_bench_time_s": 32.46080330002587,
+          "total_online_time_s": 123.21865189995151,
+          "total_pipeline_time_s": 1511.0619303000858,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_28.abp",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L28_urls.txt",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L28.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L28",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L28\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L28\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L28\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L28\\bench_regex.csv"
+          }
+        },
+        {
+          "file": "out/bench_pipeline_L32/pipeline_summary.json",
+          "idmap_time_s": 0.048653900041244924,
+          "offline_build_time_s": 1756.7337144999765,
+          "engine_bench_time_s": 196.1596234999597,
+          "regex_bench_time_s": 0.23187420004978776,
+          "ot_bench_time_s": 44.26991989999078,
+          "total_online_time_s": 240.66141760000028,
+          "total_pipeline_time_s": 1997.443786000018,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_32.abp",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L32_urls.txt",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L32.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L32",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L32\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L32\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L32\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L32\\bench_regex.csv"
+          }
+        },
+        {
+          "file": "out/bench_pipeline_L48/pipeline_summary.json",
+          "idmap_time_s": 0.04410539998207241,
+          "offline_build_time_s": 3420.4761166999815,
+          "engine_bench_time_s": 258.11245399992913,
+          "regex_bench_time_s": 0.2534878000151366,
+          "ot_bench_time_s": 61.41053410002496,
+          "total_online_time_s": 319.7764758999692,
+          "total_pipeline_time_s": 3740.296697999933,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_48.abp",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L48_urls.txt",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L48.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L48",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L48\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L48\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L48\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L48\\bench_regex.csv"
+          }
+        },
+        {
+          "file": "out/bench_pipeline_L64/pipeline_summary.json",
+          "idmap_time_s": 0.04959229996893555,
+          "offline_build_time_s": 3712.4495055000298,
+          "engine_bench_time_s": 382.1947417999618,
+          "regex_bench_time_s": 0.3508406999753788,
+          "ot_bench_time_s": 41.0584230000386,
+          "total_online_time_s": 423.60400549997576,
+          "total_pipeline_time_s": 4136.1031032999745,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_64.abp",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L64_urls.txt",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L64.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L64",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L64\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L64\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L64\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L64\\bench_regex.csv"
+          }
+        },
+        {
+          "file": "out/bench_pipeline_L8/pipeline_summary.json",
+          "idmap_time_s": 0.051403700024820864,
+          "offline_build_time_s": 643.0802890000632,
+          "engine_bench_time_s": 46.049759199959226,
+          "regex_bench_time_s": 0.2723322999663651,
+          "ot_bench_time_s": 7.4992425999371335,
+          "total_online_time_s": 53.821334099862725,
+          "total_pipeline_time_s": 696.9530267999507,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_8.abp",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L8_urls.txt",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L8.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L8",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L8\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L8\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L8\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_pipeline_L8\\bench_regex.csv"
+          }
+        },
+        {
+          "file": "out/bench_single_thread/pipeline_summary.json",
+          "idmap_time_s": 0.05503529997076839,
+          "offline_build_time_s": 322.4630935000023,
+          "engine_bench_time_s": 137.59744569996838,
+          "regex_bench_time_s": 0.0,
+          "ot_bench_time_s": 87.83362789999228,
+          "total_online_time_s": 225.43107359996065,
+          "total_pipeline_time_s": 547.9492023999337,
+          "paths": {
+            "easylist": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\easylist_64.abp",
+            "dataset": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\rules\\input200\\dataset\\dataset_L64_urls.txt",
+            "engine_init_file": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\configs\\engine_init_L64.json",
+            "outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_single_thread",
+            "artifacts_outdir": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_single_thread\\artifacts",
+            "idmap": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_single_thread\\id_to_action.json",
+            "engine_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_single_thread\\bench_engine.csv",
+            "regex_csv": "C:\\Users\\SJ Ng\\Desktop\\ZIDS\\out\\bench_single_thread\\bench_regex.csv"
+          }
+        }
+      ]
+    },
+    "seconds": 3.2964
+  }
+]

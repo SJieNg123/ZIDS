@@ -2,13 +2,16 @@
   "gdfa": ".\\artifacts\\L16\\gdfa.bin",
   "rowalph": ".\\artifacts\\L16\\row_alph.bin",
   "session_id": "cli",
-  "pad_mode": "gkonly",
-  "gk_index": "logical",
-  "chooser_cls": "src.client.online.chooser_master:MasterChooser",
+
+  "pad_mode": "rowcol",
+
+  "chooser_cls": "src.client.online.token_http:_OTRowChooser",
   "chooser_kwargs": {
-    "gk_table": ".\\artifacts\\L16\\gk_table.bin",
-    "gk_bytes": 32,
-    "row_endian": "little"
+    "url_base": "http://127.0.0.1:8787",
+    "master_hex": "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+    "session_id": "cli",
+    "timeout": 3.0
   },
-  "k_bytes": 32 
+
+  "k_bytes": 32
 }

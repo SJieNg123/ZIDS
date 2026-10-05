@@ -1,0 +1,290 @@
+[
+  {
+    "file": "src/client/io/__pycache__/gdfa_loader.cpython-312.pyc",
+    "bytes": 14965,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 10917,
+    "current_source_size": 10917
+  },
+  {
+    "file": "src/client/io/__pycache__/row_alph_loader.cpython-312.pyc",
+    "bytes": 8211,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 5713,
+    "current_source_size": 5713
+  },
+  {
+    "file": "src/client/io/__pycache__/token_http.cpython-312.pyc",
+    "bytes": 3243,
+    "source_exists": false,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 1932,
+    "current_source_size": null
+  },
+  {
+    "file": "src/client/online/__pycache__/abp_decide.cpython-312.pyc",
+    "bytes": 1521,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 1009,
+    "current_source_size": 1009
+  },
+  {
+    "file": "src/client/online/__pycache__/chooser_master.cpython-312.pyc",
+    "bytes": 4314,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 2756,
+    "current_source_size": 2756
+  },
+  {
+    "file": "src/client/online/__pycache__/engine.cpython-312.pyc",
+    "bytes": 22833,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 19100,
+    "current_source_size": 19100
+  },
+  {
+    "file": "src/client/online/__pycache__/token_http.cpython-312.pyc",
+    "bytes": 5238,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 3363,
+    "current_source_size": 3363
+  },
+  {
+    "file": "src/common/__pycache__/abp_canonicalize.cpython-312.pyc",
+    "bytes": 7410,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 5028,
+    "current_source_size": 5028
+  },
+  {
+    "file": "src/common/__pycache__/urlnorm.cpython-312.pyc",
+    "bytes": 3805,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 2675,
+    "current_source_size": 2675
+  },
+  {
+    "file": "src/common/crypto/__pycache__/prf.cpython-312.pyc",
+    "bytes": 2555,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 1889,
+    "current_source_size": 1889
+  },
+  {
+    "file": "src/common/crypto/__pycache__/prg.cpython-312.pyc",
+    "bytes": 3252,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 2217,
+    "current_source_size": 2217
+  },
+  {
+    "file": "src/common/odfa/__pycache__/matrix.cpython-312.pyc",
+    "bytes": 15147,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 11048,
+    "current_source_size": 11048
+  },
+  {
+    "file": "src/common/odfa/__pycache__/packing.cpython-312.pyc",
+    "bytes": 2621,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 1727,
+    "current_source_size": 1727
+  },
+  {
+    "file": "src/common/odfa/__pycache__/params.cpython-312.pyc",
+    "bytes": 6462,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 5231,
+    "current_source_size": 5231
+  },
+  {
+    "file": "src/common/odfa/__pycache__/permutation.cpython-312.pyc",
+    "bytes": 1914,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 1136,
+    "current_source_size": 1136
+  },
+  {
+    "file": "src/common/odfa/__pycache__/seed_rules.cpython-312.pyc",
+    "bytes": 1083,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 698,
+    "current_source_size": 698
+  },
+  {
+    "file": "src/common/utils/__pycache__/checks.cpython-312.pyc",
+    "bytes": 5379,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 3428,
+    "current_source_size": 3428
+  },
+  {
+    "file": "src/common/utils/__pycache__/encode.cpython-312.pyc",
+    "bytes": 8012,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 5868,
+    "current_source_size": 5868
+  },
+  {
+    "file": "src/server/io/__pycache__/easylist_loader.cpython-312.pyc",
+    "bytes": 5267,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 4043,
+    "current_source_size": 4043
+  },
+  {
+    "file": "src/server/io/__pycache__/rule_loader.cpython-312.pyc",
+    "bytes": 6770,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 6474,
+    "current_source_size": 6474
+  },
+  {
+    "file": "src/server/offline/__pycache__/build_gdfa_from_rules.cpython-312.pyc",
+    "bytes": 21661,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 16906,
+    "current_source_size": 16906
+  },
+  {
+    "file": "src/server/offline/__pycache__/dfa_combiner.cpython-312.pyc",
+    "bytes": 6246,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 5715,
+    "current_source_size": 5715
+  },
+  {
+    "file": "src/server/offline/__pycache__/gdfa_builder.cpython-312.pyc",
+    "bytes": 11260,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 10367,
+    "current_source_size": 10367
+  },
+  {
+    "file": "src/server/offline/__pycache__/key_generator.cpython-312.pyc",
+    "bytes": 5701,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 5121,
+    "current_source_size": 5121
+  },
+  {
+    "file": "src/server/offline/dfa_optimizer/__pycache__/char_grouping.cpython-312.pyc",
+    "bytes": 5884,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 4377,
+    "current_source_size": 4377
+  },
+  {
+    "file": "src/server/offline/dfa_optimizer/__pycache__/sparsity_analysis.cpython-312.pyc",
+    "bytes": 4116,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 2927,
+    "current_source_size": 2927
+  },
+  {
+    "file": "src/server/offline/export/__pycache__/gdfa_packager.cpython-312.pyc",
+    "bytes": 7997,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 4868,
+    "current_source_size": 4868
+  },
+  {
+    "file": "src/server/offline/rules_to_dfa/__pycache__/chain_rules.cpython-312.pyc",
+    "bytes": 12960,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 11435,
+    "current_source_size": 11435
+  },
+  {
+    "file": "src/server/offline/rules_to_dfa/__pycache__/regex_to_dfa.cpython-312.pyc",
+    "bytes": 27903,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 18059,
+    "current_source_size": 18059
+  },
+  {
+    "file": "src/server/ot/__pycache__/dev_ot_server.cpython-312.pyc",
+    "bytes": 5966,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 3411,
+    "current_source_size": 3411
+  },
+  {
+    "file": "tools/__pycache__/build_artifacts_direct.cpython-312.pyc",
+    "bytes": 35624,
+    "source_exists": false,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 25032,
+    "current_source_size": null
+  },
+  {
+    "file": "tools/__pycache__/run_dfa_with_abp.cpython-312.pyc",
+    "bytes": 15532,
+    "source_exists": true,
+    "magic_hex": "cb0d0d0a",
+    "flags": 0,
+    "cached_source_size": 9408,
+    "current_source_size": 9408
+  }
+]

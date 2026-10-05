@@ -34985,9 +34985,9 @@
 ||d2taktuuo4oqx.cloudfront.net^
 ||d2uap9jskdzp2.cloudfront.net^
 ||d2zh7okxrw0ix.cloudfront.net^
+||d3c3uihon9kmp.cloudfront.net^
 // ------------------ end of easylist_28 ------------------ //
 
-||d3c3uihon9kmp.cloudfront.net^
 ||d3mqyj199tigh.cloudfront.net^
 ||d3otiqb4j0158.cloudfront.net^
 ||d3q33rbmdkxzj.cloudfront.net^

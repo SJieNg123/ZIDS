@@ -427,3 +427,20 @@ def eval_rule_ids(payload: str | bytes):
     if _REGEX_COMPILED:
         return _regex_eval_rule_ids(payload)
     raise RuntimeError("Neither ENGINE initialized nor regex backend compiled; call init_for_cli(...) first.")
+
+def get_ot_stats():
+    global ENGINE
+    if ENGINE is not None and hasattr(ENGINE, "chooser") and hasattr(ENGINE.chooser, "get_stats"):
+        try:
+            return ENGINE.chooser.get_stats()
+        except Exception:
+            return None
+    return None
+
+def reset_ot_stats():
+    global ENGINE
+    if ENGINE is not None and hasattr(ENGINE, "chooser") and hasattr(ENGINE.chooser, "reset_stats"):
+        try:
+            ENGINE.chooser.reset_stats()
+        except Exception:
+            pass

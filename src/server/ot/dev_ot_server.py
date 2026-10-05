@@ -1,8 +1,7 @@
 # dev_ot_server.py  (drop-in)
 from __future__ import annotations
 import json, hmac, hashlib, os
-from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-
+from http.server import HTTPServer, BaseHTTPRequestHandler, ThreadingHTTPServer
 MASTER_HEX = os.environ.get("MASTER_HEX")  # 可用參數覆寫
 ROW_ENDIAN = "little"
 
@@ -45,7 +44,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/ot/choose":
             body = self._read_json()
             row = int(body.get("row", 0))
-            col = int(body.get("col", 0))  # 目前忽略
+            col = int(body.get("col", 0))  # ignore
             k_bytes = int(body.get("k_bytes", 32))
             master_hex = body.get("master_hex") or MASTER_HEX
             if not master_hex:
@@ -65,14 +64,21 @@ def main():
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8787)
     ap.add_argument("--master-hex", default=None, help="override MASTER_HEX")
+    ap.add_argument("--single-threaded", action="store_true",
+                    help="Use single-threaded server (for performance testing)")
     args = ap.parse_args()
     if args.master_hex:
         global MASTER_HEX
         MASTER_HEX = args.master_hex
     if not MASTER_HEX:
         raise SystemExit("Set MASTER_HEX env or --master-hex")
-    print(f"[dev-ot] listen on http://{args.host}:{args.port}  k_bytes: dynamic  master={MASTER_HEX[:8]}...")
-    httpd = ThreadingHTTPServer((args.host, args.port), Handler)
+
+    # Choose server type based on argument
+    server_class = HTTPServer if args.single_threaded else ThreadingHTTPServer
+    server_type = "single-threaded" if args.single_threaded else "multi-threaded"
+
+    print(f"[dev-ot] listen on http://{args.host}:{args.port} ({server_type})  k_bytes: dynamic  master={MASTER_HEX[:8]}...")
+    httpd = server_class((args.host, args.port), Handler)
     httpd.serve_forever()
 
 if __name__ == "__main__":
