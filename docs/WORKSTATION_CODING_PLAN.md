@@ -30,3 +30,9 @@ returns persisted state. Two tests passed in 4.572 s, covering launcher exit,
 successful/failed real child processes, retained logs and lost-supervisor
 reconciliation. `SUPERVISOR_LOST` means the worker outcome is unknown, not OOM.
 Machine shutdown or an enclosing OS job manager can still interrupt execution.
+
+Step 2 implemented: SQLite transactional checkpoints and CLI/benchmark wiring.
+A real child exits abruptly after 60 committed rows, then the resumed DFA has
+the same canonical digest as uninterrupted compilation. Identity mismatches and
+concurrent writers are rejected. Eight checkpoint/CLI/benchmark tests passed in
+9.290 s, and all eight existing compiler tests passed in the preceding run.

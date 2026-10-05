@@ -187,6 +187,8 @@ def compile_rules(rules, *, progress=None, **bounds):
 def compile_sources(sources, **bounds):
     sources = list(sources)
     rules, coverage = parse_sources(sources)
+    if bounds.get('checkpoint') is not None:
+        bounds['checkpoint_binding'] = [hashlib.sha256(text.encode('utf8')).hexdigest() for _,text in sources]
     dfa, stats = compile_rules(rules, **bounds)
     provenance = {'profile':PROFILE, 'compiler':COMPILER_VERSION,
                   'sources':[{'name':name, 'sha256':hashlib.sha256(text.encode('utf8')).hexdigest()}

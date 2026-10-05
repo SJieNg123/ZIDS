@@ -31,6 +31,8 @@ def worker(operation, payload, result, ready=None):
     try:
         if operation == 'compile':
             text = Path(payload['rules']).read_text(encoding='utf8')
+            bounds = dict(payload.get('bounds',{}))
+            bounds.setdefault('checkpoint',str(Path(payload['output'])/'compiler.sqlite'))
             with (Path(payload['output'])/'compile-progress.jsonl').open('x',encoding='utf8',buffering=1) as log:
                 def progress(value):
                     event = dict(value, worker_pid=os.getpid(), wall_seconds=perf_counter()-wall,
@@ -38,7 +40,7 @@ def worker(operation, payload, result, ready=None):
                     log.write(json.dumps(event)+'\n')
                     print(json.dumps(dict(event, scale=Path(payload['output']).name)),flush=True)
                 dfa, provenance, coverage = compile_sources([(Path(payload['rules']).name,text)],
-                                                            progress=progress, **payload.get('bounds',{}))
+                                                            progress=progress, **bounds)
                 progress({'stage':'policy_write','q':dfa.q})
             write_json(Path(payload['output'])/'policy.json',policy_dict(dfa,provenance))
             value = provenance

@@ -48,3 +48,14 @@ Protocol role separation is additionally tested in independent processes.
 The full snapshot's 47,154 parser-supported network rules pass regex feature
 validation. This does not imply that their combined DFA fits available hardware.
 The compiler's state counts, grouping bounds and source hashes are server-private.
+
+For recoverable compilation, pass `--checkpoint PATH.sqlite` to `compile`.
+Matching existing checkpoints resume automatically. Use a new output directory
+for a resumed CLI attempt, keeping the same input text and checkpoint path.
+The benchmark enables a separate checkpoint per scale. SQLite commits completed
+transitions and newly discovered subsets together every 1,000 rows or 30 seconds.
+Abrupt exit rolls back only the uncommitted transaction. Source text, compiler
+sources, Python version and constructed NFA are bound to the checkpoint, and an
+OS lock excludes concurrent writers. Checkpoints contain private policy only.
+Completed determinization is retained if later minimization or output fails.
+Construction and minimization restart on recovery. OT sessions are never resumed.

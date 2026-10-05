@@ -5,6 +5,7 @@ from re import _parser as parser, _constants as C
 
 from .contracts import ProtocolError
 from .dfa import DFA, NOMATCH, BLOCK, ALLOW
+from .checkpoint import MemoryStates, DiskStates, identity
 
 ALL = (1 << 256)-1
 URL_BYTES = sum(1 << c for c in range(32, 127))
@@ -28,7 +29,8 @@ def bits(mask):
 
 
 class NFA:
-    def __init__(self, *, max_nfa=None, max_dfa=None, seconds=None, progress=None):
+    def __init__(self, *, max_nfa=None, max_dfa=None, seconds=None, progress=None,
+                 checkpoint=None, checkpoint_binding=None, checkpoint_rows=1000):
         self.max_nfa, self.max_dfa = max_nfa, max_dfa
         self.deadline = None if seconds is None else perf_counter()+seconds
         self.edges, self.eps, self.begin, self.end, self.outputs = [], [], [], [], []
@@ -36,6 +38,8 @@ class NFA:
         self.progress = progress
         self.progress_stage, self.progress_counts = 'construction', {}
         self.next_progress = 0
+        self.checkpoint, self.checkpoint_binding = checkpoint, checkpoint_binding
+        self.checkpoint_rows = checkpoint_rows
 
     def check(self, **counts):
         if self.deadline is None and self.progress is None:
@@ -235,7 +239,7 @@ class NFA:
         # Globally equivalent input bytes are evaluated once per DFA state.
         partitions = [ALL]
         masks = {mask for edges in self.edges for mask, _ in edges} | {1, 1 << 4}
-        for mask in masks:
+        for mask in sorted(masks):
             partitions = [part for old in partitions for part in (old & mask, old & (ALL ^ mask)) if part]
         symbols = [next(bits(p)) for p in partitions]
         indexed = [[(tuple(i for i, b in enumerate(symbols) if mask & (1 << b)), dest)
@@ -264,15 +268,24 @@ class NFA:
                     found &= ~redundant
             return found
 
-        initial = (closure(1 << start), False)
-        states, indices, rows, outputs = [initial], {initial:0}, [], []
-        self.phase('determinization', dfa_states=1, processed_states=0)
-        for subset, beginning in states:
-            self.check(dfa_states=len(states), processed_states=len(rows))
+        store = (MemoryStates() if self.checkpoint is None else DiskStates(self.checkpoint,
+                 identity(self,start,partitions,self.checkpoint_binding),commit_rows=self.checkpoint_rows))
+        with store:
+            store.intern(closure(1 << start),False)
+            self.phase('determinization', dfa_states=store.count, processed_states=store.processed)
+            self._expand(store,closure,indexed,symbols,partitions)
+            rows, outputs = store.result()
+        self.symbols = symbols
+        return DFA(rows,outputs),len(partitions)
+
+    def _expand(self, store, closure, indexed, symbols, partitions):
+        while store.processed < store.count:
+            subset, beginning = store.state(store.processed)
+            self.check(dfa_states=store.count, processed_states=store.processed)
             flags = 0
             for s in bits(subset):
                 flags |= self.outputs[s]
-            outputs.append(ALLOW if flags & 4 else BLOCK if flags & 2 or (flags & 1 and not flags & 8) else NOMATCH)
+            output = ALLOW if flags & 4 else BLOCK if flags & 2 or (flags & 1 and not flags & 8) else NOMATCH
             ordinary = closure(subset, beginning)
             ending = closure(subset, beginning, True)
             destinations = [0]*len(symbols)
@@ -289,17 +302,12 @@ class NFA:
                         destinations[end_index] |= 1 << dest
             row = [0]*256
             for i, move in enumerate(destinations):
-                key = (closure(move), symbols[i] == 4 and bool(move))
-                if key not in indices:
-                    if self.max_dfa is not None and len(states) >= self.max_dfa:
-                        raise CompileLimit('DFA state limit exceeded')
-                    indices[key] = len(states)
-                    states.append(key)
+                dest = store.intern(closure(move), symbols[i] == 4 and bool(move))
+                if self.max_dfa is not None and store.count > self.max_dfa:
+                    raise CompileLimit('DFA state limit exceeded')
                 for byte in bits(partitions[i]):
-                    row[byte] = indices[key]
-            rows.append(tuple(row))
-        self.symbols = symbols
-        return DFA(tuple(rows), tuple(outputs)), len(partitions)
+                    row[byte] = dest
+            store.append(row,output)
 
 
 def minimize(dfa, *, check=lambda: None, symbols=range(256)):

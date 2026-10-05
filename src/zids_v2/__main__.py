@@ -29,6 +29,7 @@ def parser():
         item.add_argument('--rules', nargs='+', required=True)
         item.add_argument('--output', required=True)
         if name == 'compile':
+            item.add_argument('--checkpoint', help='private SQLite state, automatically resume matching work')
             item.add_argument('--max-nfa', type=int, help='optional NFA state cap, default unlimited')
             item.add_argument('--max-dfa', type=int, help='optional DFA state cap, default unlimited')
             item.add_argument('--seconds', type=float, help='optional compiler time cap, default unlimited')
@@ -81,7 +82,8 @@ def run(args):
         if command == 'coverage':
             return coverage['counts']
         try:
-            dfa, provenance, _ = compile_sources(sources, max_nfa=args.max_nfa, max_dfa=args.max_dfa, seconds=args.seconds)
+            dfa, provenance, _ = compile_sources(sources, max_nfa=args.max_nfa, max_dfa=args.max_dfa,
+                                                 seconds=args.seconds, checkpoint=args.checkpoint)
         except ProtocolError as exc:
             write_json(output/'failure.json', {'error':str(exc), 'coverage_counts':coverage['counts']})
             raise
