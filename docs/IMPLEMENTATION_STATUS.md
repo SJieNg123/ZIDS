@@ -1,55 +1,49 @@
 # Implementation status
 
-Planning commit: `47e4cf2`. User authorized automatic commits after each validated step and continuation through steps 1–12. No push requested.
+The supported implementation is `src/zids_v2/`, with tests in `tests_v2/`.
+The scope is EasyList network matching through the paper-style sparse GDFA
+and real Naor-Pinkas base OT. OT extension, Beaver preprocessing, short-key
+optimization and browser execution are excluded.
 
-Latest scope: base OT only. No OT extension or OT-specific preprocessing optimizations. Browser execution excluded.
+All protocol and workstation preparation code is implemented. Full-scale
+acceptance remains incomplete. The current compiler has not produced a final
+DFA for the 2,000-rule profile or full EasyList snapshot, so their private
+evaluations and capacity measurements remain pending on the Ubuntu workstation.
 
-2026-10-05 workstation preparation is complete. Detached supervision, resumable
-SQLite determinization, packed transition storage, binary mmap policies,
-streamed matrix/OT fragments and benchmark resume are implemented. The complete
-Windows Python 3.12 suite passed 63 tests in 96.398 s. Six fresh private decisions
-passed in a detached measurement job. Independent ABP labels were obtained for
-187,782 generated full-snapshot candidates, covering automatic witnesses for
-46,901 of 47,154 rules. The remaining 253 rules are explicitly reported.
-This is candidate/oracle coverage, not full-snapshot DFA equivalence.
-See [WORKSTATION.md](WORKSTATION.md) for commands and recovery limits, and
-[WORKSTATION_CODING_PLAN.md](WORKSTATION_CODING_PLAN.md) for increment evidence.
-
-The earlier unlimited 2,000-rule attempt ended without a final policy or recorded
-exit reason. No OOM diagnosis is established. The new compiler has not completed
-the 2,000-rule or full-snapshot acceptance experiments. Ubuntu 24.04.1 WSL2 with
-Python 3.12.3 passed all 63 tests in 82.200 s, plus dependency and native group
-checks. The actual Ubuntu workstation and remote CI remain unverified. Original
-step 12 remains open for the full-scale measurements.
-
-Earlier 2026-10-05 execution update: the user requested running DFA compilation until
-completion or hardware/resource failure. Compiler state/time limits and the
-outer benchmark compile-worker timeout are now disabled by default. Optional
-explicit limits remain available to reproduce the historical measurements below.
-Unlimited runs record phase and state counts and detect worker death without a
-deadline. Removing limits alone does not complete full-scale acceptance.
-Validation passed all 46 tests in 34.760 s on Windows Python 3.12. New regressions
-cross the former default NFA/DFA limits, simulate an elapsed deadline, and verify
-progress, allocation-error reporting and hard worker-exit handling.
-
-| Step | Status | Evidence |
+| Area | Status | Evidence |
 | --- | --- | --- |
-| 1 | Complete | PyNaCl 1.6.2 native group smoke passed, uv lock and dependency consistency checks passed on Windows and Ubuntu WSL2, NP Protocols 3.1 and 2.1 inspected. Remote platform CI remains pending |
-| 2 | Complete | `uv run --locked python -B -m unittest tests_v2.test_wire -v` covers two spawned processes and malformed or replayed frames |
-| 3 | Complete | NP Protocol 3.1 base OT over native Edwards25519. Base OT + wire suites: 8 tests in 0.226 s, two processes, invalid points, equal-key branch separation and replay |
-| 4 | Complete | All 256 choices with fresh real base OT, four-ciphertext XOR regression, malformed tables and cross-session/replay tests passed in 4.455 s |
-| 5 | Complete | Two-process whole/split batches agree, wire byte counters agree, 8n base transfers measured, extension names rejected. 2 tests in 0.559 s |
-| 6 | Complete | Exhaustive short-word grouping/search checks, six state-index widths, tail/alignment/resource/permutation cases. 3 tests in 0.002 s |
-| 7 | Complete | Sparse position matrix, fresh keys/permutations/pad chains and final-only evaluation. Exhaustive ideal-selection tests plus real OT in two processes, 3 tests in 0.931 s |
-| 8 | Complete | Streaming public matrix/private bundles, canonical manifests, mmap evaluation and hashes. Roundtrip, tampering and bounded-memory checks passed, 3 tests in 0.381 s |
-| 9 | Complete | Pinned independent ABP oracle, typed parser, fixed PSL/context codec. 3 semantic test groups passed in 0.130 s. Full snapshot parser coverage: 47,154 supported, 23,813 out of scope, 299 metadata, zero invalid/unsupported |
-| 10 | Complete | One total byte policy DFA, output-preserving minimization and fail-closed bounds. 4 test groups passed in 34.599 s, including 272 oracle/DFA cases and three real base-OT/GDFA decisions. Full snapshot regex feature coverage has zero failures |
-| 11 | Complete | SQLite atomic reservation, fail-closed crash/disconnect handling, manifest binding and supported CLI. 12 lifecycle/CLI/artifact/wire tests passed in 7.488 s, including independent server/client processes and concurrent claimants. Remote mode requires mutual TLS 1.3 |
-| 12 | Implemented, full-scale acceptance incomplete | Latest 62 tests passed in 76.638 s. Frozen 200-rule fixture retains 406 cases and adds 801 generated oracle/DFA agreements. Full parser/regex coverage passes. Workstation preparation is complete, 2,000-rule/full-snapshot final DFA and private evaluation remain unverified. See `docs/BENCHMARK_V2.md` and committed raw records |
+| Dependencies and native crypto | Implemented | uv lockfile, pinned Python 3.12.3, dependency and native group checks on Windows and Ubuntu WSL2 |
+| Wire format | Implemented | Independent processes, strict frame validation, truncation and replay tests |
+| Base OT | Implemented | Naor-Pinkas Protocol 3.1, native Edwards25519, point validation and transcript binding |
+| 1-of-256 OT and batching | Implemented | All 256 choices tested with real base OT, 8n bit transfers, XOR-relation and cross-session regressions |
+| DFA grouping and codec | Implemented | Global character groups, alignment, padding, index widths and exhaustive short-input checks |
+| GDFA construction and evaluation | Implemented | Fresh position keys, pads and permutations, final-only output, real OT integration |
+| Artifacts and streaming | Implemented | Public/private separation, mmap policies, bounded buffers, large-row and fragmented transport tests |
+| EasyList profile | Implemented | Fixed reference matcher and PSL, explicit coverage categories, supported context and regex semantics |
+| Compiler | Implemented, full scale pending | Oracle/DFA agreement for fixtures, output-preserving minimization and unlimited default execution |
+| Lifecycle and CLI | Implemented | Atomic reservation, consume/burn semantics, crash handling, fresh sessions and mutual TLS |
+| Workstation tooling | Implemented | Detached jobs, persisted exit status, transactional checkpoints, packed transitions and benchmark resume |
+| Large-scale experiments | Pending | Final 2,000-rule/full-snapshot DFA, semantic comparisons and fresh private evaluations |
 
-Existing dirty legacy code, configurations, datasets and large artifacts are preserved and excluded from step commits. New code uses `src/zids_v2/`, tests use `tests_v2/`, runtime artifacts use ignored `v2-runs/`.
+After repository cleanup on 2026-10-06, Windows uv 0.10.5 with Python 3.12.0 passed
+all 63 tests in 160.412 seconds. During the preceding uv migration, Ubuntu WSL2
+with Python 3.12.3 synced the same lockfile and passed dependency and native group
+checks. Before that migration,
+Ubuntu 24.04.1 WSL2 with Python 3.12.3 and Node 22.23.3 passed all 63 tests in
+82.200 seconds. The actual Ubuntu workstation and remote CI remain unverified.
 
-Completed step commits: 1 `64a2a92`, 2 `251f983`, 3 `8a6bb16`, 4 `f034c0e`,
-5 `de0acb5`, 6 `e764bd7`, 7 `1f3c608`, 8 `7982ea9`, 9 `a4cb70a`,
-10 `c8fce3b`, 11 `49b5044`. Step 12's implementation and measurements are committed
-separately, with large-scale acceptance explicitly remaining open.
+Six fresh synthetic/small private decisions passed in the retained workstation
+readiness run. The full-snapshot oracle labelled 187,782 generated candidates,
+with automatic witnesses for 46,901 of 47,154 supported rules and 253 explicitly
+unwitnessed rules. These are oracle results, not full-snapshot DFA equivalence.
+
+An older unlimited 2,000-rule attempt ended without a final policy or recorded
+exit reason. It predates checkpoint support and cannot be resumed. No OOM cause
+or hardware ceiling was established. Compiler state/time caps remain disabled by
+default, with explicit limits available to reproduce historical bounded attempts.
+
+Use [RUN_V2.md](RUN_V2.md) for the supported CLI and
+[WORKSTATION.md](WORKSTATION.md) for Ubuntu execution and recovery.
+[BENCHMARK_V2.md](BENCHMARK_V2.md) describes measurements and evidence limits.
+[History](history/README.md) retains the original audit, step-by-step plans and
+recovery instructions for the retired implementation.

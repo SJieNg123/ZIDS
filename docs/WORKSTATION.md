@@ -26,7 +26,8 @@ source archive from Windows PowerShell, run at the repository root:
 
 ```powershell
 git archive --format=tar.gz --output=v2-runs/ubuntu-source.tar.gz HEAD `
-  .gitattributes .python-version pyproject.toml uv.lock src/zids_v2 tests_v2 docs `
+  README.md .gitattributes .gitignore .python-version pyproject.toml uv.lock `
+  src/zids_v2 tests_v2 docs benchmarks/v2 `
   rules/easylist.txt rules/small.abp `
   tools/jobs_v2.py tools/benchmark_v2.py tools/cases_v2.py tools/diagnose_v2.py `
   tools/verify_benchmark_policies.py tools/check_v2_crypto.py `

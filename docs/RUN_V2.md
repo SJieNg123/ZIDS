@@ -86,9 +86,10 @@ uv run --locked python tools/check_v2_crypto.py
 uv run --locked python -m unittest discover -s tests_v2 -v
 ```
 
-After the uv migration, Windows uv 0.10.5 with Python 3.12.0 passed all 63 tests
-in 190.639 seconds on 2026-10-06. Ubuntu 24.04.1 WSL2 with Python 3.12.3 synced
-the same lockfile and passed dependency and native group checks. Before the
+After repository cleanup, Windows uv 0.10.5 with Python 3.12.0 passed all 63 tests
+in 160.412 seconds on 2026-10-06. During the preceding uv migration, Ubuntu
+24.04.1 WSL2 with Python 3.12.3 synced the same lockfile and passed dependency
+and native group checks. Before the
 migration, that Ubuntu environment passed all 63 tests in 82.200 seconds. See
 [BENCHMARK_V2.md](BENCHMARK_V2.md) for measured capacity, timings and remaining
 large-profile limits. The target Ubuntu workstation and remote CI have not yet
@@ -96,5 +97,5 @@ been exercised. Ubuntu setup and transfer commands are in [WORKSTATION.md](WORKS
 
 Protocol details are in [protocol_spec.md](protocol_spec.md),
 [ot_suite.md](ot_suite.md), [easylist_profile.md](easylist_profile.md) and
-[compiler.md](compiler.md). Historical entry points below the v2 banner in the
-root README are retained as legacy material and are outside the supported flow.
+[compiler.md](compiler.md). The retired implementation and original audit can be
+located through [history](history/README.md).

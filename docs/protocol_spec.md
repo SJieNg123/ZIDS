@@ -41,7 +41,9 @@ Compiled policy can be reused. Garbling and OT records cannot. Session states ar
 
 ## Resource and implementation boundaries
 
-The new implementation lives in `src/zids_v2/` to prevent accidental imports of audited legacy crypto and to preserve the user's existing modified experiments. At CLI cutover, this package becomes the documented supported path. Legacy files are retained as historical experiments, not silently selected as fallbacks.
+The supported implementation lives in `src/zids_v2/`. Retired clients, servers
+and crypto modules have been removed from the active source tree. Original audit
+evidence and source recovery instructions are in [history](history/README.md).
 
 Before allocation, estimate GDFA bytes as n*Q*ceil(outmax*w/8), bundle bytes as n*256*cmax*ceil(w/8), and base OT transfers as 8n. Aggregate byte caps are opt-in. Default execution runs to completion or actual resource failure. Explicit caps produce errors without dropping rules, shortening X or reusing garbling.
 

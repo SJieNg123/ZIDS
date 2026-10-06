@@ -1,48 +1,43 @@
-# ZIDS v2: EasyList and base OT
+# ZIDS: EasyList and base OT
 
-The supported implementation is `src/zids_v2`. It compiles the declared EasyList
-network profile into one policy DFA, prepares the paper-style GDFA, and evaluates
-it with real Naor-Pinkas base OT in separate server and client processes.
-OT extension and browser execution are excluded.
+ZIDS compiles the declared EasyList network profile into one policy DFA and
+evaluates private request context through a garbled DFA with Naor-Pinkas base OT.
+The server and client run in separate processes. The client receives the final
+`ALLOW`, `BLOCK` or `NOMATCH` result. OT extension and browser execution are out
+of scope.
 
-Follow [the runnable Windows and Bash guide](docs/RUN_V2.md).
-See [implementation status](docs/IMPLEMENTATION_STATUS.md) and
-[protocol and leakage contract](docs/protocol_spec.md) for validated scope.
-Full-snapshot parser coverage does not establish full-snapshot compilation capacity.
+Install uv and Node.js 22, then run from the repository root in PowerShell or Bash:
 
-The historical commands below use legacy code and do not implement the supported
-v2 protocol. In particular, the shared-master chooser must not be used for private
-evaluation. Existing legacy code and local changes are retained for comparison.
-
----
-
-## Development of ZIDS
-how to use
-for OT server, start a terminal and run:
+```text
+uv python install
+uv sync --locked
+uv run --locked python tools/setup_reference.py
+uv run --locked python tools/check_v2_crypto.py
+uv run --locked python -B -m unittest discover -s tests_v2 -v
 ```
-python -m src.server.ot.dev_ot_server `
-  --port 8787 `
-  --master-hex 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff `
-  --single-threaded
-```
-for OT client, start another terminal and run:
-```
-python tools/bench_all.py `
---easylist rules/input200/easylist_(number).abp `
---dataset rules/input200/dataset/dataset_L(number)_urls.txt `
---engine-init-file configs/engine_init_L(number).json `
---outdir out/bench_pipeline_L(number) `
---artifacts-outdir out/bench_pipeline_L(number)/artifacts `
---engine-repeat 3 `
---engine-warmup 5 `
---ot-repeats 1 `
---ot-warmup 3 `
---ot-max-urls 200 `
---with-regex-baseline `
---regex-repeat 3 `
---regex-warmup 5 `
---outmax 256 `
---cmax 1 `
---gk-bytes 32
-```
-Replace (number) with 8, 12, 16, 20, 24, 28, 32, 48, 64, 128 to run different configurations.
+
+Python 3.12.3 is pinned in `.python-version`. Dependencies are locked in `uv.lock`.
+uv manages the local `.venv` without shell activation.
+
+Follow [RUN_V2.md](docs/RUN_V2.md) for compile, prepare, serve and evaluate commands.
+Use [WORKSTATION.md](docs/WORKSTATION.md) for Ubuntu setup, detached experiments
+and checkpoint recovery. After cleanup, Windows Python 3.12.0 passed 63 tests in
+160.412 seconds using uv. See [implementation status](docs/IMPLEMENTATION_STATUS.md)
+and [measurement evidence](docs/BENCHMARK_V2.md) for validation details.
+The 2,000-rule and full-snapshot DFA acceptance experiments remain incomplete.
+
+| Path | Purpose |
+| --- | --- |
+| `src/zids_v2/` | Supported protocol, EasyList compiler and CLI |
+| `tests_v2/` | Protocol tests and fixed semantic fixtures |
+| `tools/` | Reference setup, benchmarks, jobs and diagnostics |
+| `rules/` | Fixed EasyList snapshot and small benchmark input |
+| `docs/` | Current protocol specifications and operation guides |
+| `benchmarks/v2/` | Historical measurement reports and measured source snapshots |
+| `docs/history/` | Original audit evidence and completed development plans |
+| `v2-runs/` | Ignored local experiments, checkpoints and retired files |
+
+The [protocol contract](docs/protocol_spec.md), [OT suite](docs/ot_suite.md),
+[EasyList profile](docs/easylist_profile.md) and [compiler notes](docs/compiler.md)
+define the supported behavior. Legacy source recovery is documented in
+[history](docs/history/README.md).

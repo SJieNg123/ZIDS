@@ -1,5 +1,19 @@
 # v2 validation and capacity
 
+## 2026-10-06 uv environment and repository cleanup validation
+
+Windows uv 0.10.5 with Python 3.12.0 passed all 63 tests in 190.639 seconds.
+The same lockfile synced successfully on Ubuntu WSL2 with Python 3.12.3.
+Dependency consistency and native group checks passed on both platforms.
+These environment checks did not rerun the large-scale benchmarks below.
+
+After retiring the unused legacy source, configurations, datasets and tools,
+the complete Windows suite passed again with 63 tests in 160.412 seconds.
+This local run used the installed Python 3.12.0 through `UV_PYTHON`, while the
+project default remains 3.12.3. Documentation links and unchanged archived audit
+evidence were also checked. The supported protocol, tests and historical
+benchmark records were unchanged by the cleanup.
+
 ## 2026-10-05 workstation preparation validation
 
 The complete Windows Python 3.12.0 suite passed 63 tests in 96.398 s, and the
@@ -59,15 +73,15 @@ profile and full snapshot exceed the tested compiler bounds. They are not report
 as successful private evaluations.
 
 The final Windows Python 3.12.0 / PyNaCl 1.6.2 run passed all 40 tests in 50.466 s.
-After the uv migration, the native group smoke check and dependency consistency
-check passed on Windows and Ubuntu WSL2. The Windows uv environment passed all
-63 tests in 190.639 seconds. Tests include all 256 OT
+The native group smoke check and dependency consistency check passed. Tests
+included all 256 OT
 choices, malformed points and transcripts, two independent processes, GDFA
 alignment and padding, durable reservation races and crashes, mutual TLS,
 independent matcher comparisons and actual base-OT/GDFA decisions.
 
 Windows and Linux CI jobs are configured in `.github/workflows/zids-v2.yml`.
-Linux execution and the remote CI jobs have not been observed in this workspace.
+Linux had not been tested at the time of these bounded measurements. Subsequent
+Ubuntu WSL2 results are recorded above. Remote CI remains unverified.
 
 ## Matching and compiler results
 

@@ -1,14 +1,17 @@
+# Local Python environments and caches
+.venv/
 .venv-v2/
 .uv-cache/
 .uv-python/
 __pycache__/
 *.pyc
 .pytest_cache/
-v2-runs/
-node_modules/
-.reference/
-.venv/
 
-# Rebuildable legacy protocol artifacts and benchmark output
+# Local experiments, checkpoints, retired files and reference installation
+/v2-runs/
+node_modules/
+/.reference/
+
+# Retired output locations must stay untracked if recreated
 /artifacts/
 /out/

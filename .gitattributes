@@ -4,6 +4,8 @@
 /tools/verify_benchmark_policies.py text eol=lf
 /tools/reference*.cjs text eol=lf
 /tools/reference-lock.json text eol=lf
-/requirements-v2.txt text eol=lf
+/pyproject.toml text eol=lf
+/uv.lock text eol=lf
+/.python-version text eol=lf
 /benchmarks/v2/**/*.json text eol=lf
 /benchmarks/v2/**/*.zip -text
