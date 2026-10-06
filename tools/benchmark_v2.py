@@ -260,7 +260,8 @@ def run_locked(output, scales, secure_scales, seconds, max_nfa, max_dfa, resume)
         [text,[asdict(c) for c in contexts]],sort_keys=True).encode('utf8')).hexdigest()
         for name,text,contexts in inputs}
     report['data_sha256'] = {name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in
-                            ('src/zids_v2/data/public_suffixes.json','requirements-v2.txt')}
+                            ('src/zids_v2/data/public_suffixes.json','pyproject.toml','uv.lock',
+                             '.python-version')}
     if resume:
         previous = read_json(output/'report.json',limit=None)
         for field in ('suite','reference','implementation_sha256','harness_sha256','snapshot_sha256',
@@ -269,7 +270,8 @@ def run_locked(output, scales, secure_scales, seconds, max_nfa, max_dfa, resume)
                 raise ProtocolError('benchmark resume identity mismatch: '+field)
         report['scales'] = previous['scales']
     atomic_json(output/'report.json',report)
-    for relative in list(report['implementation_sha256'])+['requirements-v2.txt','tools/benchmark_v2.py',
+    for relative in list(report['implementation_sha256'])+['pyproject.toml','uv.lock','.python-version',
+                        'tools/benchmark_v2.py',
                         'tools/cases_v2.py','tools/jobs_v2.py',
                         'tools/reference_matcher.cjs','tools/reference-lock.json','tools/setup_reference.py',
                         'src/zids_v2/data/public_suffixes.json','src/zids_v2/data/ABP-LICENSE.txt',

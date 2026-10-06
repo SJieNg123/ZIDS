@@ -59,7 +59,9 @@ profile and full snapshot exceed the tested compiler bounds. They are not report
 as successful private evaluations.
 
 The final Windows Python 3.12.0 / PyNaCl 1.6.2 run passed all 40 tests in 50.466 s.
-The native group smoke check and `pip check` passed. Tests include all 256 OT
+After the uv migration, the native group smoke check and dependency consistency
+check passed on Windows and Ubuntu WSL2. The Windows uv environment passed all
+63 tests in 190.639 seconds. Tests include all 256 OT
 choices, malformed points and transcripts, two independent processes, GDFA
 alignment and padding, durable reservation races and crashes, mutual TLS,
 independent matcher comparisons and actual base-OT/GDFA decisions.
@@ -152,10 +154,10 @@ full-profile delivery is claimed.
 After the setup in [RUN_V2.md](RUN_V2.md), use a new output directory per run:
 
 ```text
-python -m tools.benchmark_v2 --output v2-runs/my-benchmark --secure-scales synthetic small context200
-python -m tools.benchmark_v2 --output v2-runs/my-2000 --scales profile2000 --secure-scales --max-dfa 100000 --seconds 300
-python -m tools.benchmark_v2 --output v2-runs/my-full --scales full --secure-scales --max-nfa 1000000 --max-dfa 20000 --seconds 300
-python -m tools.verify_benchmark_policies --run v2-runs/my-benchmark --output v2-runs/my-equivalence.json
+uv run --locked python -m tools.benchmark_v2 --output v2-runs/my-benchmark --secure-scales synthetic small context200
+uv run --locked python -m tools.benchmark_v2 --output v2-runs/my-2000 --scales profile2000 --secure-scales --max-dfa 100000 --seconds 300
+uv run --locked python -m tools.benchmark_v2 --output v2-runs/my-full --scales full --secure-scales --max-nfa 1000000 --max-dfa 20000 --seconds 300
+uv run --locked python -m tools.verify_benchmark_policies --run v2-runs/my-benchmark --output v2-runs/my-equivalence.json
 ```
 
 The benchmark retains failed attempts, source hashes, implementation snapshots

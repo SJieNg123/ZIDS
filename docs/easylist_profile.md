@@ -59,7 +59,7 @@ no parser-invalid or unknown-option lines. This is parser coverage, not a claim
 that its entire DFA fits the selected resource bounds. The snapshot SHA256 is
 `2888c230ef758e3c5c73a867376ed379d12cd2e9d9b94551634fc60dc1a05f34`.
 
-Run `python tools/setup_reference.py` once to install the pinned reference into
+Run `uv run --locked python tools/setup_reference.py` once to install the pinned reference into
 ignored `.reference/abp`. It verifies the archive digest and does not run npm
 install scripts. `node tools/reference_matcher.cjs` reads rules/context JSON on
 stdin and returns decisions only for offline testing. It never fetches a URL.

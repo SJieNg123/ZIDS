@@ -10,12 +10,15 @@ compilation, semantic comparisons and fresh private evaluations on real hardware
 
 The target workstation uses Ubuntu. The package commands below use Ubuntu 24.04
 LTS as the setup baseline. Check the actual release with `cat /etc/os-release`.
-Local validation on Ubuntu 24.04.1 WSL2 with Python 3.12.3 and Node 22.23.3 passed
+Local validation before the uv migration on Ubuntu 24.04.1 WSL2 with Python
+3.12.3 and Node 22.23.3 passed
 all 63 tests in 82.200 s. Dependency and native group checks also passed. This
 validates Linux execution locally, not the target workstation or full-scale runs.
-Ubuntu 22.04's default Python is 3.10, so use a separately installed Python 3.12
-there. On other releases, also select Python 3.12 explicitly. Do not replace
-Ubuntu's system `python3` command.
+After the migration, the same Ubuntu and Python versions successfully synced
+`uv.lock` and repeated the dependency and native group checks. Windows uv 0.10.5
+also passed all 63 tests in 190.639 s.
+The uv-managed environment pins CPython 3.12.3 independently of Ubuntu's system
+Python. Do not replace Ubuntu's system `python3` command.
 
 Transfer the committed source to a directory on the workstation's local SSD.
 The current changes are committed locally and have not been pushed. To create a
@@ -23,7 +26,7 @@ source archive from Windows PowerShell, run at the repository root:
 
 ```powershell
 git archive --format=tar.gz --output=v2-runs/ubuntu-source.tar.gz HEAD `
-  .gitattributes requirements-v2.txt src/zids_v2 tests_v2 docs `
+  .gitattributes .python-version pyproject.toml uv.lock src/zids_v2 tests_v2 docs `
   rules/easylist.txt rules/small.abp `
   tools/jobs_v2.py tools/benchmark_v2.py tools/cases_v2.py tools/diagnose_v2.py `
   tools/verify_benchmark_policies.py tools/check_v2_crypto.py `
@@ -32,17 +35,21 @@ git archive --format=tar.gz --output=v2-runs/ubuntu-source.tar.gz HEAD `
 
 Copy that archive to Ubuntu using your normal file transfer method, then extract
 into a new directory. This archive contains committed files, including the fixed
-rule snapshot. It excludes legacy artifacts, local uncommitted edits, `.venv-v2`,
+rule snapshot. It excludes legacy artifacts, local uncommitted edits, `.venv`,
 `.reference` and ignored `v2-runs` checkpoints. Checkpoints must be transferred separately if needed.
-Recreate the virtual environment on Ubuntu instead of copying the Windows one.
+Let uv recreate `.venv` on Ubuntu instead of copying the Windows environment.
 
 ## Ubuntu setup
 
-On Ubuntu 24.04, install the Python and download utilities:
+On Ubuntu 24.04, install the download utilities, then install the same uv release
+used by CI:
 
 ```bash
 sudo apt-get update
-sudo apt-get install python3.12 python3.12-venv ca-certificates curl xz-utils
+sudo apt-get install ca-certificates curl xz-utils
+curl -LsSf https://astral.sh/uv/0.10.5/install.sh | sh
+export PATH="$HOME/.local/bin:$PATH"
+uv --version
 ```
 
 Use Node.js 22 for the independent reference matcher. If it is already installed,
@@ -61,25 +68,26 @@ export PATH="$PWD/v2-runs/tools/node-v22.23.3-linux-x64/bin:$PATH"
 node --version
 ```
 
-Reapply that `PATH` export in each new shell that runs the oracle or tests.
+Reapply both required `PATH` exports in each new shell that runs the oracle or tests.
 The detached supervisor inherits it. Node is needed for validation, the protocol
-client does not use it. The pinned Python requirements install into the venv:
+client does not use it. uv installs CPython 3.12.3, creates `.venv` and syncs the
+exact package versions from `uv.lock`:
 
 ```bash
 umask 077
-python3.12 -m venv .venv-v2
-source .venv-v2/bin/activate
-python -m pip install -r requirements-v2.txt
-python -m pip check
-python tools/setup_reference.py
-python tools/check_v2_crypto.py
-python -B -m unittest discover -s tests_v2 -v
+uv python install
+uv sync --locked
+uv pip check
+uv run --locked python tools/setup_reference.py
+uv run --locked python tools/check_v2_crypto.py
+uv run --locked python -B -m unittest discover -s tests_v2 -v
 ```
 
 Record the actual Python patch version, CPU, RAM, swap and storage with each run:
 
 ```bash
-python --version
+uv --version
+uv run --locked python --version
 node --version
 uname -a
 lscpu
@@ -88,18 +96,17 @@ swapon --show
 df -h . /tmp
 ```
 
-The Python package baseline follows the [Ubuntu 24.04 package catalogue](https://packages.ubuntu.com/noble/python3.12-venv).
-The separate 22.04 interpreter requirement follows its [default Python package](https://packages.ubuntu.com/jammy/python3).
+uv installation and version pinning follow the [official installer documentation](https://docs.astral.sh/uv/getting-started/installation/).
+The managed Python selection follows the [official Python version documentation](https://docs.astral.sh/uv/concepts/python-versions/).
 Node archives and checksums come from the [official Node distribution](https://nodejs.org/dist/v22.23.3/).
-Python documents virtual environments as [non-portable](https://docs.python.org/3.12/library/venv.html).
 
 ## Detached compilation without state or time caps
 
-After activating the Ubuntu environment, run from the repository root:
+After syncing the Ubuntu environment, run from the repository root:
 
 ```text
-python -m tools.jobs_v2 start --directory v2-runs/workstation-job-01 -- python -B -X utf8 -m tools.benchmark_v2 --output v2-runs/workstation-compile --scales profile2000 full --secure-scales
-python -m tools.jobs_v2 status --directory v2-runs/workstation-job-01
+uv run --locked python -m tools.jobs_v2 start --directory v2-runs/workstation-job-01 -- uv run --locked python -B -X utf8 -m tools.benchmark_v2 --output v2-runs/workstation-compile --scales profile2000 full --secure-scales
+uv run --locked python -m tools.jobs_v2 status --directory v2-runs/workstation-job-01
 ```
 
 Both output directories must initially be new. The empty `--secure-scales`
@@ -149,8 +156,8 @@ After confirming the previous worker and its children have stopped, launch a new
 job directory using the same benchmark output:
 
 ```text
-python -m tools.jobs_v2 start --directory v2-runs/workstation-job-02 -- python -B -X utf8 -m tools.benchmark_v2 --output v2-runs/workstation-compile --scales profile2000 full --secure-scales --resume
-python -m tools.jobs_v2 status --directory v2-runs/workstation-job-02
+uv run --locked python -m tools.jobs_v2 start --directory v2-runs/workstation-job-02 -- uv run --locked python -B -X utf8 -m tools.benchmark_v2 --output v2-runs/workstation-compile --scales profile2000 full --secure-scales --resume
+uv run --locked python -m tools.jobs_v2 status --directory v2-runs/workstation-job-02
 ```
 
 Resume verifies input contexts, rule text, compiler, harness, PSL, dependencies,
@@ -173,18 +180,18 @@ including any SQLite WAL sidecars, using a consistent copy. Retain the matching
 source revision and Python patch version. The older unlimited experiment had
 no checkpoint, so its intermediate states cannot be resumed.
 
-The existing Windows measurements used Python 3.12.0. Ubuntu 24.04's distribution
-Python is 3.12.3, so checkpoints from those two interpreters will intentionally
-fail the version check. Start a new Ubuntu run unless the checkpoint was created
-with exactly the same patch version and matching code. Do not edit checkpoint
-identity metadata to bypass that check.
+The existing Windows measurements used Python 3.12.0. The uv project pins Python
+3.12.3, so checkpoints from those measurements will intentionally fail the
+version check. Start a new uv-managed run unless the checkpoint was created with
+exactly the same patch version and matching code. Do not edit checkpoint identity
+metadata to bypass that check.
 
 For direct CLI compilation, specify a persistent checkpoint and a new output
 directory on every attempt:
 
 ```text
-python -m src.zids_v2 compile --rules rules/easylist.txt --checkpoint v2-runs/full-compiler.sqlite --output v2-runs/full-attempt-01
-python -m src.zids_v2 compile --rules rules/easylist.txt --checkpoint v2-runs/full-compiler.sqlite --output v2-runs/full-attempt-02
+uv run --locked python -m src.zids_v2 compile --rules rules/easylist.txt --checkpoint v2-runs/full-compiler.sqlite --output v2-runs/full-attempt-01
+uv run --locked python -m src.zids_v2 compile --rules rules/easylist.txt --checkpoint v2-runs/full-compiler.sqlite --output v2-runs/full-attempt-02
 ```
 
 ## Coverage and diagnosis
@@ -199,7 +206,7 @@ coverage is sampled semantic evidence, not a proof of all inputs.
 Inspect context-condition groups without determinizing the whole policy:
 
 ```text
-python -m tools.diagnose_v2 --rules rules/easylist.txt --output v2-runs/full-groups.json
+uv run --locked python -m tools.diagnose_v2 --rules rules/easylist.txt --output v2-runs/full-groups.json
 ```
 
 The report ranks URL-union NFA sizes and maps each group back to rule IDs. It
@@ -232,9 +239,9 @@ export TMPDIR="$PWD/v2-runs/tmp"
 To run a small complete measurement with fresh sessions:
 
 ```text
-python -m tools.jobs_v2 start --directory v2-runs/smoke-job -- python -B -X utf8 -m tools.benchmark_v2 --output v2-runs/smoke --scales synthetic small --secure-scales synthetic small
-python -m tools.jobs_v2 status --directory v2-runs/smoke-job
-python -m tools.verify_benchmark_policies --run v2-runs/smoke --output v2-runs/smoke-equivalence.json
+uv run --locked python -m tools.jobs_v2 start --directory v2-runs/smoke-job -- uv run --locked python -B -X utf8 -m tools.benchmark_v2 --output v2-runs/smoke --scales synthetic small --secure-scales synthetic small
+uv run --locked python -m tools.jobs_v2 status --directory v2-runs/smoke-job
+uv run --locked python -m tools.verify_benchmark_policies --run v2-runs/smoke --output v2-runs/smoke-equivalence.json
 ```
 
 Run the verifier after the job succeeds. It supports legacy JSON and binary

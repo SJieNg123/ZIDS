@@ -1,39 +1,34 @@
 # Run ZIDS v2
 
-Use Python 3.12. Windows PowerShell setup:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) first. The
+project pins Python 3.12.3 in `.python-version` and all Python dependencies in
+`uv.lock`. Windows PowerShell and Linux use the same setup:
 
 ```powershell
-py -3.12 -m venv .venv-v2
-.\.venv-v2\Scripts\Activate.ps1
-python -m pip install -r requirements-v2.txt
+uv python install
+uv sync --locked
+uv pip check
 ```
 
-Bash setup for Linux:
-
-```bash
-python3.12 -m venv .venv-v2
-source .venv-v2/bin/activate
-python -m pip install -r requirements-v2.txt
-```
-
-The commands below work in either activated shell. They only match serialized
+`uv sync` creates and manages `.venv`. Activation is not required. The commands
+below work in PowerShell or Bash. They only match serialized
 request context and never fetch the example URLs. Output directories must be new.
 
 ```text
-python -m src.zids_v2 compile --rules tests_v2/fixtures/demo.abp --output v2-runs/demo-policy
-python -m src.zids_v2 length --request tests_v2/fixtures/request.json
-python -m src.zids_v2 estimate --policy v2-runs/demo-policy/policy.bin --length 41
-python -m src.zids_v2 prepare --policy v2-runs/demo-policy/policy.bin --length 41 --output v2-runs/demo-session
-python -m src.zids_v2 serve --session v2-runs/demo-session --port 8787
+uv run --locked python -m src.zids_v2 compile --rules tests_v2/fixtures/demo.abp --output v2-runs/demo-policy
+uv run --locked python -m src.zids_v2 length --request tests_v2/fixtures/request.json
+uv run --locked python -m src.zids_v2 estimate --policy v2-runs/demo-policy/policy.bin --length 41
+uv run --locked python -m src.zids_v2 prepare --policy v2-runs/demo-policy/policy.bin --length 41 --output v2-runs/demo-session
+uv run --locked python -m src.zids_v2 serve --session v2-runs/demo-session --port 8787
 ```
 
 The fixture encodes to 41 bytes. For other inputs, use the length printed by
 `length`. Preparation takes only this public length and the private policy.
-Leave `serve` running and use a second activated terminal:
+Leave `serve` running and use a second terminal from the repository root:
 
 ```text
-python -m src.zids_v2 evaluate --request tests_v2/fixtures/request.json --output v2-runs/demo-client --port 8787
-python -m src.zids_v2 status --session v2-runs/demo-session
+uv run --locked python -m src.zids_v2 evaluate --request tests_v2/fixtures/request.json --output v2-runs/demo-client --port 8787
+uv run --locked python -m src.zids_v2 status --session v2-runs/demo-session
 ```
 
 Expected client label is `ALLOW` and final server status is `CONSUMED`. Evaluation
@@ -43,7 +38,7 @@ key argument, alternate chooser, simulated OT or OT extension switch.
 Prepare a fresh session in a new directory for every evaluation, even when the
 policy and input length are unchanged. A dropped connection burns its session.
 After a process crash, a RESERVED session stays unusable. Stop the old server,
-then `python -m src.zids_v2 recover --session PATH` records it as BURNED.
+then `uv run --locked python -m src.zids_v2 recover --session PATH` records it as BURNED.
 Recovery never makes old keys reusable. TCP may retransmit the same bytes within
 a connection, but application reconnect and transcript replay are not supported.
 
@@ -67,7 +62,7 @@ Compilation defaults to unlimited states and runtime. To run the large compiler
 experiments sequentially without state or time caps, use a fresh directory:
 
 ```text
-python -m tools.benchmark_v2 --output v2-runs/unlimited-compile --scales profile2000 full --secure-scales
+uv run --locked python -m tools.benchmark_v2 --output v2-runs/unlimited-compile --scales profile2000 full --secure-scales
 ```
 
 The empty `--secure-scales` selects compilation and reference comparisons only.
@@ -86,14 +81,15 @@ and fixed-size metadata. Rule sources, hashes and diagnostics remain private.
 For independent matching tests, install Node.js and the pinned reference once:
 
 ```text
-python tools/setup_reference.py
-python tools/check_v2_crypto.py
-python -m unittest discover -s tests_v2 -v
+uv run --locked python tools/setup_reference.py
+uv run --locked python tools/check_v2_crypto.py
+uv run --locked python -m unittest discover -s tests_v2 -v
 ```
 
-On Windows Python 3.12, the 2026-10-05 suite passed 63 tests in 96.398 seconds.
-Ubuntu 24.04.1 WSL2 / Python 3.12.3 also passed 63 tests in 82.200 seconds, plus
-dependency and native group checks. See
+After the uv migration, Windows uv 0.10.5 with Python 3.12.0 passed all 63 tests
+in 190.639 seconds on 2026-10-06. Ubuntu 24.04.1 WSL2 with Python 3.12.3 synced
+the same lockfile and passed dependency and native group checks. Before the
+migration, that Ubuntu environment passed all 63 tests in 82.200 seconds. See
 [BENCHMARK_V2.md](BENCHMARK_V2.md) for measured capacity, timings and remaining
 large-profile limits. The target Ubuntu workstation and remote CI have not yet
 been exercised. Ubuntu setup and transfer commands are in [WORKSTATION.md](WORKSTATION.md).

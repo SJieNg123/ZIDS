@@ -50,7 +50,7 @@ All 256 messages at each position have one public length. Sender and receiver AP
 | Output length | Chosen messages are complete padded group-key bundles |
 | Security claim | CDH/RO base OT plus PRF reduction under the stated static-corruption model |
 
-Native primitive smoke command: `.venv-v2/Scripts/python.exe -B tools/check_v2_crypto.py` on Windows, `.venv-v2/bin/python -B tools/check_v2_crypto.py` on Linux. Windows is measured locally. Linux support is a portability target until its CI job actually runs, not a completed measurement.
+Native primitive smoke command on Windows and Linux: `uv run --locked python -B tools/check_v2_crypto.py`. Windows and Ubuntu 24.04.1 WSL2 have been measured locally. Remote CI and the target workstation remain separate validation environments.
 
 Large-message transport slices the same PRF output, preserving the total message
 length, option index and HMAC block counters. It does not introduce wrapping

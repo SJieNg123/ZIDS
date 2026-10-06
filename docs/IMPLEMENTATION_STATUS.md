@@ -34,8 +34,8 @@ progress, allocation-error reporting and hard worker-exit handling.
 
 | Step | Status | Evidence |
 | --- | --- | --- |
-| 1 | Complete | Windows Python 3.12.0 / PyNaCl 1.6.2 native group smoke passed, pip check passed, NP Protocols 3.1 and 2.1 inspected. Linux runtime verification remains for platform CI |
-| 2 | Complete | `python -B -m unittest tests_v2.test_wire -v`, 4 tests passed in 0.111 s, including two spawned processes and malformed/replayed frames |
+| 1 | Complete | PyNaCl 1.6.2 native group smoke passed, uv lock and dependency consistency checks passed on Windows and Ubuntu WSL2, NP Protocols 3.1 and 2.1 inspected. Remote platform CI remains pending |
+| 2 | Complete | `uv run --locked python -B -m unittest tests_v2.test_wire -v` covers two spawned processes and malformed or replayed frames |
 | 3 | Complete | NP Protocol 3.1 base OT over native Edwards25519. Base OT + wire suites: 8 tests in 0.226 s, two processes, invalid points, equal-key branch separation and replay |
 | 4 | Complete | All 256 choices with fresh real base OT, four-ciphertext XOR regression, malformed tables and cross-session/replay tests passed in 4.455 s |
 | 5 | Complete | Two-process whole/split batches agree, wire byte counters agree, 8n base transfers measured, extension names rejected. 2 tests in 0.559 s |
