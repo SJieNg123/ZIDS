@@ -1,0 +1,21 @@
+{
+  "original_files": 321,
+  "original_file_sizes_checked": 321,
+  "original_small_file_hashes_checked": 290,
+  "changed_original_files": [],
+  "inventory_rows": 321,
+  "audit_python_syntax_ok": [
+    "build_audit_inventory.py",
+    "reproduce_findings.py",
+    "verify_audit.py"
+  ],
+  "broken_report_links": [],
+  "issue_groups": 25,
+  "undefined_issue_references": [],
+  "probe_groups": 18,
+  "completed_probe_groups": 18,
+  "recorded_container_hash_checks": 24,
+  "all_recorded_container_hashes_match": true,
+  "containers_rehashed_in_this_run": false,
+  "audit_validation_ok": true
+}

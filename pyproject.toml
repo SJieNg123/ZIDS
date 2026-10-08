@@ -1,5 +1,5 @@
 [project]
-name = "zids-v2"
+name = "zids"
 version = "0.1.0"
 description = "Privacy-preserving EasyList DFA evaluation with base OT"
 requires-python = ">=3.12,<3.13"

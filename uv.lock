@@ -58,7 +58,7 @@ wheels = [
 ]
 
 [[package]]
-name = "zids-v2"
+name = "zids"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

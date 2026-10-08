@@ -1,14 +1,14 @@
 # Local Python environments and caches
 .venv/
-.venv-v2/
 .uv-cache/
 .uv-python/
 __pycache__/
 *.pyc
 .pytest_cache/
 
-# Local experiments, checkpoints, retired files and reference installation
-/v2-runs/
+# Local experiments, retired artifacts and reference installation
+/runs/
+/legacy/local/
 node_modules/
 /.reference/
 

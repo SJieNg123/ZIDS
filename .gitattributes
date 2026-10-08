@@ -1,11 +1,12 @@
-/src/zids_v2/** text eol=lf
-/tests_v2/** text eol=lf
-/tools/*_v2.py text eol=lf
-/tools/verify_benchmark_policies.py text eol=lf
+/src/zids/** text eol=lf
+/tests/** text eol=lf
+/tools/*.py text eol=lf
 /tools/reference*.cjs text eol=lf
 /tools/reference-lock.json text eol=lf
 /pyproject.toml text eol=lf
 /uv.lock text eol=lf
 /.python-version text eol=lf
-/benchmarks/v2/**/*.json text eol=lf
-/benchmarks/v2/**/*.zip -text
+/legacy/benchmarks/**/*.json -text
+/legacy/benchmarks/**/*.zip -text
+/legacy/audit/*.json -text
+/legacy/audit/*.csv -text

@@ -1,4 +1,4 @@
-# ZIDS v2 protocol contract
+# ZIDS protocol contract
 
 Scope: EasyList network matching through the sparse ODFA in ZIDS §5.4, using base OT only. OT extension, Beaver OT preprocessing and §6.5 wrapping-key optimization are excluded by the user's 2026-10-04 instruction. Browser execution is excluded.
 
@@ -41,9 +41,12 @@ Compiled policy can be reused. Garbling and OT records cannot. Session states ar
 
 ## Resource and implementation boundaries
 
-The supported implementation lives in `src/zids_v2/`. Retired clients, servers
-and crypto modules have been removed from the active source tree. Original audit
-evidence and source recovery instructions are in [history](history/README.md).
+The supported implementation lives in `src/zids/`. Retired clients, servers
+and crypto modules are isolated under `legacy/`, together with the original
+audit and source recovery instructions in the [legacy guide](../legacy/README.md).
+Package and tool names are independent of protocol format versions. Wire magic,
+cryptographic domain tags, suite identifiers and serialized version fields retain
+their existing bytes across the repository rename.
 
 Before allocation, estimate GDFA bytes as n*Q*ceil(outmax*w/8), bundle bytes as n*256*cmax*ceil(w/8), and base OT transfers as 8n. Aggregate byte caps are opt-in. Default execution runs to completion or actual resource failure. Explicit caps produce errors without dropping rules, shortening X or reusing garbling.
 

@@ -2,13 +2,14 @@
 import argparse
 import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import struct
 
-from src.zids_v2.artifacts import read_json, write_json
-from src.zids_v2.compiler import compile_sources
-from src.zids_v2.context import RequestContext
-from src.zids_v2.policy_io import open_policy
+from src.zids.artifacts import read_json, write_json
+from src.zids.compiler import compile_sources
+from src.zids.context import RequestContext
+from src.zids.contracts import ProtocolError
+from src.zids.policy_io import open_policy
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_FILES = ('__init__','artifacts','base_ot','batch_ot','codec','contracts','crypto','dfa',
@@ -31,6 +32,21 @@ def canonical_digest(dfa):
     return digest.hexdigest()
 
 
+def protocol_source_checks(measured):
+    """Compare exact module contents even when an archived package was renamed."""
+    hashes = measured['implementation_sha256']
+    checks = {}
+    for name in PROTOCOL_FILES:
+        filename = name+'.py'
+        matches = [digest for path,digest in hashes.items()
+                   if PurePosixPath(path.replace('\\','/')).name == filename]
+        if len(matches) != 1:
+            raise ProtocolError('missing or ambiguous protocol source hash: '+filename)
+        current = hashlib.sha256((ROOT/'src/zids'/filename).read_bytes()).hexdigest()
+        checks[name] = current == matches[0]
+    return checks
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--run',required=True)
@@ -38,8 +54,7 @@ def main():
     args = parser.parse_args()
     directory = Path(args.run)
     measured = read_json(directory/'report.json',limit=16*1024*1024)
-    unchanged = {name: hashlib.sha256((ROOT/('src/zids_v2/'+name+'.py')).read_bytes()).hexdigest()
-                 == measured['implementation_sha256']['src/zids_v2/'+name+'.py'] for name in PROTOCOL_FILES}
+    unchanged = protocol_source_checks(measured)
     result = {'protocol_files_unchanged':unchanged,'policies':[]}
     for record in measured['scales']:
         if record['compile']['status'] != 'ok':

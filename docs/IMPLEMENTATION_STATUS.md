@@ -1,6 +1,6 @@
 # Implementation status
 
-The supported implementation is `src/zids_v2/`, with tests in `tests_v2/`.
+The supported implementation is `src/zids/`, with tests in `tests/`.
 The scope is EasyList network matching through the paper-style sparse GDFA
 and real Naor-Pinkas base OT. OT extension, Beaver preprocessing, short-key
 optimization and browser execution are excluded.
@@ -25,8 +25,11 @@ evaluations and capacity measurements remain pending on the Ubuntu workstation.
 | Workstation tooling | Implemented | Detached jobs, persisted exit status, transactional checkpoints, packed transitions and benchmark resume |
 | Large-scale experiments | Pending | Final 2,000-rule/full-snapshot DFA, semantic comparisons and fresh private evaluations |
 
-After repository cleanup on 2026-10-06, Windows uv 0.10.5 with Python 3.12.0 passed
-all 63 tests in 160.412 seconds. During the preceding uv migration, Ubuntu WSL2
+After the layout rename on 2026-10-08, Windows uv 0.10.5 with Python 3.12.0 passed
+all 66 tests in 143.886 seconds, including three archived-source verification
+regressions. All 13 protocol module hashes still match the retained readiness
+measurement, and both measured policies passed language and sample-input checks.
+During the preceding uv migration, Ubuntu WSL2
 with Python 3.12.3 synced the same lockfile and passed dependency and native group
 checks. Before that migration,
 Ubuntu 24.04.1 WSL2 with Python 3.12.3 and Node 22.23.3 passed all 63 tests in
@@ -42,8 +45,8 @@ exit reason. It predates checkpoint support and cannot be resumed. No OOM cause
 or hardware ceiling was established. Compiler state/time caps remain disabled by
 default, with explicit limits available to reproduce historical bounded attempts.
 
-Use [RUN_V2.md](RUN_V2.md) for the supported CLI and
+Use [RUN.md](RUN.md) for the supported CLI and
 [WORKSTATION.md](WORKSTATION.md) for Ubuntu execution and recovery.
-[BENCHMARK_V2.md](BENCHMARK_V2.md) describes measurements and evidence limits.
-[History](history/README.md) retains the original audit, step-by-step plans and
+[BENCHMARK.md](BENCHMARK.md) describes measurements and evidence limits.
+[History](../legacy/README.md) retains the original audit, step-by-step plans and
 recovery instructions for the retired implementation.

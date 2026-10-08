@@ -1,6 +1,6 @@
 # Private policy compiler
 
-`src/zids_v2/compiler.py` compiles the declared EasyList profile and the complete
+`src/zids/compiler.py` compiles the declared EasyList profile and the complete
 framed request context into one total 256-byte DFA. Request type, party and the
 most specific matching document-domain suffix constrain each URL matcher.
 Document and generic-block exceptions include the explicitly supplied ancestors.
